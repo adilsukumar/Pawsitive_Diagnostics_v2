@@ -164,7 +164,7 @@ export function CollarProvider({ children }: { children: ReactNode }) {
       if (r && typeof r.value === "number") appendReading(k as HistoryKey, r.value, r.at ?? Date.now());
     });
   }, [live]);
-  const [receiving, setReceiving] = useState(false);
+  const [receiving, setReceiving] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [transport, setTransport] = useState<CollarTransport | null>(null);
   const deviceRef = useRef<BLEDevice | null>(null);
@@ -327,4 +327,6 @@ export function useCollar(): CollarCtx {
   if (!v) throw new Error("useCollar must be used inside CollarProvider");
   return v;
 }
+
+
 
