@@ -55,8 +55,9 @@ export default function SideDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
   const { pet } = usePet();
   const { session, signOut, hydrated } = useAuth();
   const { connected, receiving, live } = useCollar();
-  const activeSensors = (Object.keys(live) as (keyof typeof live)[]).filter((k) => live[k]).length;
-  const collarScore = receiving ? Math.round((activeSensors / 5) * 100) : null;
+  const telemetrySensors = [live.temp, live.humidity, live.motion];
+  const activeSensors = telemetrySensors.filter(Boolean).length;
+  const collarScore = receiving ? Math.round((activeSensors / telemetrySensors.length) * 100) : null;
   // Time-of-day greeting is client-only to avoid hydration mismatch.
   const [greet, setGreet] = useState("Hello!");
   useEffect(() => { setGreet(greeting()); }, []);

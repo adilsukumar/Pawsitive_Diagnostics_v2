@@ -4,16 +4,16 @@ import { useEffect, useState, type ReactNode } from "react";
 import { getSpecies } from "@/lib/species";
 import {
   Microscope, Activity, Thermometer, MapPin, Wind, Sun, GitMerge,
-  Bluetooth, BatteryMedium, PawPrint, Search, SlidersHorizontal,
-  ChevronDown, ArrowUpRight, HeartHandshake, Stethoscope, type LucideIcon,
+  Bluetooth, Cable, Droplets, BatteryMedium, PawPrint, Search, SlidersHorizontal,
+  ChevronDown, HeartHandshake, Stethoscope, type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
-import { usePet, displayName } from "@/context/PetContext";
+import { usePet } from "@/context/PetContext";
 import { useGeoLocation } from "@/lib/useGeoLocation";
 import { useAuth } from "@/context/AuthContext";
 import { useCollar } from "@/context/CollarContext";
+import { describeEnvironment, interpretMovement } from "@/lib/telemetryInterpretation";
 import VetHome from "@/components/vet/VetHome";
-import { Mandala, CornerScroll, Peacock } from "@/components/JaipurMotifs";
 
 export const Route = createFileRoute("/home")({ component: Home });
 
@@ -103,7 +103,9 @@ const sensors: Sensor[] = [
   { Icon: Activity, accent: GREEN_ICON, iconBg: GREEN_BG, to: "/motion-sense",
     en: "MotionSense", subEn: "Activity Track", valEn: "—" },
   { Icon: Thermometer, accent: GREEN_ICON, iconBg: GREEN_BG, to: "/temp-sense",
-    en: "TempSense AI", subEn: "Body Temp", valEn: "—" },
+    en: "Body Temp", subEn: "NTC sensor", valEn: "Coming soon" },
+  { Icon: Droplets, accent: GREEN_ICON, iconBg: GREEN_BG, to: "/environment-sense",
+    en: "EnvironmentSense", subEn: "Temperature + Humidity", valEn: "—" },
   { Icon: MapPin, accent: GREEN_ICON, iconBg: GREEN_BG, to: "/map",
     en: "LocationSense", subEn: "GPS + Map", valEn: "—" },
   { Icon: Wind, accent: GREEN_ICON, iconBg: GREEN_BG, to: "/pressure-sense",
@@ -114,13 +116,65 @@ const sensors: Sensor[] = [
     en: "CombineSense", subEn: "Combined Analysis", valEn: "—" },
 ];
 
+function CollarStatusCard() {
+  const { state, live, battery, transport, receiving, error, connect, disconnect } = useCollar();
+  const connected = state === "connected";
+  const active = [live.temp, live.humidity, live.motion].filter(Boolean).length;
+  const TransportIcon = transport === "bluetooth" ? Bluetooth : Cable;
+
+  return (
+    <JCard style={{ padding: "12px 14px", marginTop: 16, boxShadow: "none" }}>
+      <div className="flex items-center" style={{ gap: 10 }}>
+        <div className="flex items-center justify-center" style={{ width: 38, height: 38, borderRadius: 12, background: "var(--acc-pale)", flexShrink: 0 }}>
+          <TransportIcon size={18} strokeWidth={2} className={state === "connecting" ? "animate-pulse" : ""}
+            style={{ color: connected ? JP.matcha : JP.sakura }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="flex items-center" style={{ gap: 6 }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: receiving ? JP.matcha : "var(--text-placeholder)", flexShrink: 0 }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: JP.sumi }}>
+              {connected ? `Live over ${transport === "bluetooth" ? "Bluetooth" : "USB"}` : state === "connecting" ? "Connecting collar…" : "Collar disconnected"}
+            </span>
+          </div>
+          <div style={{ fontSize: 11, color: error ? "var(--accent-red)" : JP.usuzumi, marginTop: 2, lineHeight: 1.35 }}>
+            {error ?? (receiving ? `${active} of 3 readings live` : connected ? "Waiting for telemetry…" : "USB is fastest for local testing")}
+          </div>
+        </div>
+        {connected && battery != null && (
+          <div className="flex items-center" style={{ gap: 3, color: JP.sora }}>
+            <BatteryMedium size={14} /><span style={{ fontSize: 11, fontWeight: 700 }}>{battery}%</span>
+          </div>
+        )}
+        {connected ? (
+          <button onClick={() => { disconnect(); toast.info("Collar disconnected"); }}
+            style={{ height: 34, padding: "0 12px", borderRadius: 17, border: "1px solid var(--border-subtle)", background: "var(--bg-card)", color: JP.usuzumi, fontSize: 11, fontWeight: 700 }}>
+            Disconnect
+          </button>
+        ) : (
+          <div className="flex items-center" style={{ gap: 6 }}>
+            <button disabled={state === "connecting"} onClick={() => connect("usb")}
+              style={{ height: 34, padding: "0 13px", borderRadius: 17, border: "none", background: JP.sakura, color: "var(--primary-foreground)", fontSize: 11, fontWeight: 700, opacity: state === "connecting" ? 0.65 : 1 }}>
+              Connect USB
+            </button>
+            <button disabled={state === "connecting"} onClick={() => connect("bluetooth")} aria-label="Connect Bluetooth" title="Connect Bluetooth"
+              className="flex items-center justify-center"
+              style={{ width: 34, height: 34, borderRadius: 17, border: "1px solid var(--border-subtle)", background: "var(--bg-card)", color: JP.sakura, opacity: state === "connecting" ? 0.65 : 1 }}>
+              <Bluetooth size={15} />
+            </button>
+          </div>
+        )}
+      </div>
+    </JCard>
+  );
+}
+
 /* ---------- Page ---------- */
 function Home() {
   const { session, hydrated } = useAuth();
   const [factIdx, setFactIdx] = useState(0);
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const { state: collarState, live, battery, connect, disconnect, receiving, error: collarError } = useCollar();
+  const { state: collarState, live, receiving } = useCollar();
 
   const { pet } = usePet();
   const sp = getSpecies(pet.species);
@@ -136,12 +190,10 @@ function Home() {
   if (session?.role === "vet") return <VetHome />;
 
   const fact = sp.facts[factIdx % sp.facts.length];
-  // Data-completeness score: only computed from real collar readings.
-  const activeSensors = (Object.keys(live) as (keyof typeof live)[]).filter((k) => live[k]).length;
-  const score = receiving ? Math.round((activeSensors / 5) * 100) : null;
-
-  const petName = displayName(pet, `My ${sp.label}`);
-  const mood = pet.name?.trim() ? `${petName} is feeling great` : "Feeling great";
+  // Only real collar readings contribute to the device status.
+  const telemetrySensors = [live.temp, live.humidity, live.motion];
+  const activeSensors = telemetrySensors.filter(Boolean).length;
+  const movementState = interpretMovement(live.motion?.value);
 
   const filtered = (query.trim()
     ? sensors.filter((s) =>
@@ -155,11 +207,13 @@ function Home() {
       if (s.en === "LocationSense") return s; // GPS comes from the phone, not the collar
       if (collarState !== "connected") return { ...s, valEn: "—", noteEn: undefined, progress: undefined };
       const liveFor: Record<string, string | undefined> = {
-        "TempSense AI": live.temp ? `${live.temp.value}${live.temp.unit}` : undefined,
-        MotionSense: live.motion ? `${live.motion.value.toLocaleString()} steps` : undefined,
+        EnvironmentSense: live.temp && live.humidity
+          ? `${live.temp.value.toFixed(1)}° · ${live.humidity.value.toFixed(0)}%`
+          : undefined,
+        MotionSense: movementState === "unknown" ? undefined : movementState === "moving" ? "Moving" : "Resting",
         PressureSense: live.pressure ? `${live.pressure.value} ${live.pressure.unit}` : undefined,
         LightSense: live.light ? `${live.light.value} ${live.light.unit}` : undefined,
-        CombineSense: score != null ? `${score}/100` : undefined,
+        CombineSense: receiving ? `${activeSensors} of 3 live` : undefined,
       };
       const lv = liveFor[s.en];
       if (lv) return { ...s, valEn: lv };
@@ -195,6 +249,43 @@ function Home() {
             }}
           >
             <SlidersHorizontal size={19} strokeWidth={2} />
+          </Link>
+        </div>
+
+        <CollarStatusCard />
+
+        <SectionHeader en="Live now" to="/report" />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.35fr", gap: 10 }}>
+          <Link to="/motion-sense">
+            <JCard style={{ padding: 16, minHeight: 116 }}>
+              <div className="flex items-center justify-between">
+                <Activity size={18} strokeWidth={2} style={{ color: JP.sakura }} />
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: receiving ? JP.matcha : "var(--text-placeholder)" }} />
+              </div>
+              <div style={{ marginTop: 17, fontSize: 20, fontWeight: 700, color: JP.sumi, fontFamily: "var(--font-display)" }}>
+                {movementState === "moving" ? "Moving" : movementState === "resting" ? "Resting" : "—"}
+              </div>
+              <div style={{ marginTop: 3, fontSize: 11, color: JP.usuzumi }}>Current activity</div>
+            </JCard>
+          </Link>
+          <Link to="/environment-sense">
+            <JCard style={{ padding: 16, minHeight: 116 }}>
+              <div className="flex items-center justify-between">
+                <Droplets size={18} strokeWidth={2} style={{ color: JP.sakura }} />
+                <span style={{ fontSize: 10, color: JP.usuzumi }}>{receiving ? "Live" : "Waiting"}</span>
+              </div>
+              <div className="flex items-baseline" style={{ gap: 8, marginTop: 14 }}>
+                <span style={{ fontSize: 25, fontWeight: 700, color: JP.sumi, fontFamily: "var(--font-display)" }}>
+                  {live.temp ? `${live.temp.value.toFixed(1)}°C` : "—"}
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: JP.sakura }}>
+                  {live.humidity ? `${live.humidity.value.toFixed(0)}% RH` : ""}
+                </span>
+              </div>
+              <div style={{ marginTop: 3, fontSize: 11, color: JP.usuzumi }}>
+                {describeEnvironment(live.temp?.value, live.humidity?.value)}
+              </div>
+            </JCard>
           </Link>
         </div>
 
@@ -242,77 +333,6 @@ function Home() {
           </button>
         </div>
 
-        {/* Health overview — solid accent card, reference "upcoming schedule" style */}
-        <Link
-          to="/report"
-          style={{
-            display: "block",
-            marginTop: 18,
-            borderRadius: 28,
-            background: "linear-gradient(135deg, var(--accent-sakura) 0%, var(--accent-sakura-dark) 100%)",
-            boxShadow: "0 10px 28px color-mix(in oklab, var(--accent-sakura) 40%, transparent)",
-            padding: 20,
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          {/* Jaipur fresco watermark — mandala medallion + arabesque corners */}
-          <Mandala
-            size={210}
-             style={{ position: "absolute", top: -58, right: -52, color: "var(--primary-foreground)", opacity: 0.1, pointerEvents: "none" }}
-          />
-          <CornerScroll
-            size={56}
-            flipY
-             style={{ position: "absolute", left: 4, bottom: 4, color: "var(--primary-foreground)", opacity: 0.16, pointerEvents: "none" }}
-          />
-          <Peacock
-            size={64}
-             style={{ position: "absolute", right: 10, bottom: -6, color: "var(--primary-foreground)", opacity: 0.15, pointerEvents: "none" }}
-          />
-
-          <div className="flex items-center" style={{ gap: 12, position: "relative", zIndex: 1 }}>
-            <div
-              className="flex items-center justify-center"
-               style={{ width: 48, height: 48, borderRadius: 16, background: "var(--bg-card)", flexShrink: 0 }}
-            >
-              <PawPrint size={22} strokeWidth={2} style={{ color: JP.sakura }} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-               <div style={{ fontSize: 18, fontWeight: 500, color: "var(--primary-foreground)", lineHeight: 1.2, fontFamily: "var(--font-display)" }}>
-                Overall Health Score
-              </div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>
-                {mood}
-              </div>
-            </div>
-            <div
-              className="flex items-center justify-center"
-               style={{ width: 40, height: 40, borderRadius: 14, background: "var(--bg-card)", flexShrink: 0 }}
-            >
-              <ArrowUpRight size={19} strokeWidth={2.4} style={{ color: JP.sakura }} />
-            </div>
-          </div>
-
-          <div style={{ height: 1, background: "rgba(255,255,255,0.25)", margin: "14px 0 12px", position: "relative", zIndex: 1 }} />
-
-          <div className="flex items-center justify-between" style={{ position: "relative", zIndex: 1 }}>
-            <div className="flex items-center" style={{ gap: 6 }}>
-              <span className="relative inline-block" style={{ width: 8, height: 8 }}>
-                 <span style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "var(--primary-foreground)" }} />
-                 <span className="animate-ping" style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "var(--primary-foreground)", opacity: 0.6 }} />
-              </span>
-               <span style={{ fontSize: 10, fontWeight: 700, color: "var(--primary-foreground)", letterSpacing: "0.08em" }}>LIVE</span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>
-                {receiving ? `· ${activeSensors} of 5 sensors reporting` : "· Waiting for collar data"}
-              </span>
-            </div>
-             <span style={{ fontSize: 24, fontWeight: 500, color: "var(--primary-foreground)", fontVariantNumeric: "tabular-nums", fontFamily: "var(--font-display)" }}>
-              {score ?? "—"}<span style={{ fontSize: 12, fontWeight: 600, opacity: 0.8 }}> / 100</span>
-            </span>
-          </div>
-        </Link>
-
         {/* Daily fact — clean white card, above sensors (lightweight CSS fade, no animation lib) */}
         <style>{`@keyframes factFade { from { opacity: 0; } to { opacity: 1; } }`}</style>
         <SectionHeader en={`Daily ${sp.label} Fact`} />
@@ -334,71 +354,6 @@ function Home() {
             </div>
           </JCard>
         </div>
-
-        {/* Collar status — compact box: connection state + battery + connect */}
-        <SectionHeader en="Collar Status" />
-        <JCard style={{ padding: "12px 14px" }}>
-          <div className="flex items-center" style={{ gap: 10 }}>
-            <div
-              className="flex items-center justify-center"
-              style={{ width: 38, height: 38, borderRadius: 12, background: "var(--acc-pale)", flexShrink: 0 }}
-            >
-              <Bluetooth
-                size={18}
-                strokeWidth={2}
-                className={collarState === "connecting" ? "animate-pulse" : ""}
-                style={{ color: collarState === "connected" ? JP.matcha : JP.sakura }}
-              />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: JP.sumi, lineHeight: 1.2 }}>
-                {collarState === "connected"
-                  ? "Collar Connected"
-                  : collarState === "connecting"
-                    ? "Pairing…"
-                    : "Collar Not Connected"}
-              </div>
-              <div style={{ fontSize: 11, color: collarError ? "var(--accent-red)" : JP.usuzumi, marginTop: 1 }}>
-                {collarError
-                  ? collarError
-                  : collarState === "connected"
-                    ? receiving ? "Live data streaming" : "Connected — waiting for readings…"
-                    : "Tap connect to pair over Bluetooth"}
-              </div>
-            </div>
-            {collarState === "connected" && battery != null && (
-              <div
-                className="flex items-center"
-                style={{ gap: 4, flexShrink: 0, background: "var(--acc-pale)", borderRadius: 20, padding: "5px 10px" }}
-                aria-label={`Collar battery ${battery} percent`}
-              >
-                <BatteryMedium size={14} strokeWidth={2} style={{ color: JP.sora }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: JP.sora, fontVariantNumeric: "tabular-nums" }}>{battery}%</span>
-              </div>
-            )}
-            <button
-              disabled={collarState === "connecting"}
-              onClick={() => {
-                if (collarState === "connected") {
-                  disconnect();
-                  toast.info("Collar disconnected");
-                  return;
-                }
-                connect();
-              }}
-              className="flex items-center justify-center active:scale-95 transition-transform"
-              style={{
-                height: 34, padding: "0 14px", borderRadius: 17, border: "none", flexShrink: 0,
-                fontSize: 12, fontWeight: 700,
-                background: collarState === "connected" ? "var(--accent-matcha)" : JP.sakura,
-                 color: "var(--primary-foreground)",
-                opacity: collarState === "connecting" ? 0.8 : 1,
-              }}
-            >
-              {collarState === "connecting" ? "Pairing…" : collarState === "connected" ? "On" : "Connect"}
-            </button>
-          </div>
-        </JCard>
 
         {/* Sensor quick icons — all 8 visible in one line, no scrolling */}
         <SectionHeader en="Sense AI" />
@@ -477,7 +432,7 @@ function Home() {
         <SectionHeader en="Quick Access" />
         <div className="flex" style={{ gap: 14, marginBottom: 20, justifyContent: "space-between" }}>
           {[
-            { to: "/report", Icon: Activity, label: "Health Report", sub: score != null ? `${score}/100` : "—", bg: GREEN_BG, accent: GREEN_ICON },
+            { to: "/report", Icon: Activity, label: "Health Report", sub: "View details", bg: GREEN_BG, accent: GREEN_ICON },
             { to: "/breeds", Icon: PawPrint, label: "Breed Guide", sub: "200+ breeds", bg: GREEN_BG, accent: GREEN_ICON },
             { to: "/community", Icon: HeartHandshake, label: "Pet Match", sub: "Find a match", bg: GREEN_BG, accent: GREEN_ICON },
             { to: "/clinics", Icon: Stethoscope, label: "Clinics", sub: "Vets near you", bg: GREEN_BG, accent: GREEN_ICON },

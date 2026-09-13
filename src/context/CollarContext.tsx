@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
-export type SensorKey = "skin" | "motion" | "temp" | "pressure" | "light";
+export type SensorKey = "skin" | "motion" | "temp" | "humidity" | "pressure" | "light";
 
 export interface LiveReading {
   value: number;
@@ -20,10 +20,11 @@ export interface LiveReading {
 type LiveMap = Record<SensorKey, LiveReading | null>;
 
 const EMPTY_LIVE: LiveMap = {
-  skin: null, motion: null, temp: null, pressure: null, light: null,
+  skin: null, motion: null, temp: null, humidity: null, pressure: null, light: null,
 };
 
 export type CollarState = "idle" | "connecting" | "connected";
+export type CollarTransport = "usb" | "bluetooth";
 
 interface CollarCtx {
   state: CollarState;
@@ -33,9 +34,10 @@ interface CollarCtx {
   /** device battery % — only known once the collar reports it */
   battery: number | null;
   live: LiveMap;
+  transport: CollarTransport | null;
   /** last connection/parsing problem, if any */
   error: string | null;
-  connect: () => void;
+  connect: (transport?: CollarTransport) => void;
   disconnect: () => void;
 }
 
@@ -48,7 +50,7 @@ const BATTERY_SERVICE = 0x180f;
 const BATTERY_LEVEL = 0x2a19;
 
 const UNITS: Record<SensorKey, string> = {
-  skin: "", motion: "steps", temp: "°C", pressure: "kPa", light: "lux",
+  skin: "", motion: "m/s²", temp: "°C", humidity: "% RH", pressure: "kPa", light: "lux",
 };
 
 interface BLEDevice {
@@ -62,6 +64,11 @@ interface BLEChar {
   readValue: () => Promise<DataView>;
   addEventListener: (t: string, fn: (e: Event) => void) => void;
 }
+interface SerialPortLike {
+  readable: ReadableStream<Uint8Array> | null;
+  open: (options: { baudRate: number }) => Promise<void>;
+  close: () => Promise<void>;
+}
 
 /** Parse one text packet from the collar into live readings.
  *  Accepts JSON like {"temp":38.5,"motion":12} or lines like "temp:38.5". */
@@ -73,9 +80,18 @@ function parsePacket(text: string, prev: LiveMap): { live: LiveMap; battery: num
   const set = (key: string, raw: unknown) => {
     const v = typeof raw === "number" ? raw : parseFloat(String(raw));
     if (Number.isNaN(v)) return;
-    if (key === "battery" || key === "batt") { battery = Math.round(v); got = true; return; }
-    if (key in UNITS) {
-      live[key as SensorKey] = { value: v, unit: UNITS[key as SensorKey], at: Date.now() };
+    if (key === "battery" || key === "battery_pct" || key === "batt") { battery = Math.round(v); got = true; return; }
+    const aliases: Record<string, SensorKey> = {
+      temp_c: "temp",
+      temperature_c: "temp",
+      humidity_rh: "humidity",
+      rh: "humidity",
+      motion_mps2: "motion",
+      activity_mps2: "motion",
+    };
+    const sensor = aliases[key] ?? (key in UNITS ? key as SensorKey : null);
+    if (sensor) {
+      live[sensor] = { value: v, unit: UNITS[sensor], at: Date.now() };
       got = true;
     }
   };
@@ -109,18 +125,46 @@ export function CollarProvider({ children }: { children: ReactNode }) {
   }, [live]);
   const [receiving, setReceiving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [transport, setTransport] = useState<CollarTransport | null>(null);
   const deviceRef = useRef<BLEDevice | null>(null);
   const bufferRef = useRef("");
+  const serialPortRef = useRef<SerialPortLike | null>(null);
+  const serialReaderRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
+
+  const closeSerial = useCallback(() => {
+    const port = serialPortRef.current;
+    const reader = serialReaderRef.current;
+    serialPortRef.current = null;
+    serialReaderRef.current = null;
+    void (async () => {
+      try { await reader?.cancel(); } catch { /* already closed */ }
+      try { reader?.releaseLock(); } catch { /* already released */ }
+      try { await port?.close(); } catch { /* already closed */ }
+    })();
+  }, []);
 
   const teardown = useCallback(() => {
     deviceRef.current = null;
+    closeSerial();
+    setTransport(null);
     setState("idle");
     setLive(EMPTY_LIVE);
     setBattery(null);
     setReceiving(false);
+  }, [closeSerial]);
+
+  const processLine = useCallback((line: string) => {
+    const { live: next, battery: b, got } = parsePacket(line, EMPTY_LIVE);
+    if (!got) return;
+    setLive((prev) => ({ ...prev, ...Object.fromEntries(
+      (Object.keys(next) as SensorKey[]).filter((key) => next[key]).map((key) => [key, next[key]]),
+    ) }));
+    if (b != null && b >= 0 && b <= 100) setBattery(b);
+    setReceiving(true);
+    setError(null);
   }, []);
 
-  const connect = useCallback(() => {
+  const connectBluetooth = useCallback(() => {
     const nav = navigator as Navigator & { bluetooth?: { requestDevice: (o: unknown) => Promise<BLEDevice> } };
     if (!nav.bluetooth) {
       setError("This browser doesn't support Bluetooth. Open the app in Chrome on your phone.");
@@ -138,6 +182,7 @@ export function CollarProvider({ children }: { children: ReactNode }) {
         device.addEventListener("gattserverdisconnected", teardown);
         const server = await device.gatt!.connect();
         deviceRef.current = device;
+        setTransport("bluetooth");
 
         const service = await server.getPrimaryService(UART_SERVICE);
         const tx = await service.getCharacteristic(UART_TX);
@@ -148,27 +193,7 @@ export function CollarProvider({ children }: { children: ReactNode }) {
           // process complete packets (newline-delimited); keep partial tail
           const parts = bufferRef.current.split("\n");
           bufferRef.current = parts.pop() ?? "";
-          for (const line of parts) {
-            const { live: next, battery: b, got } = parsePacket(line, EMPTY_LIVE);
-            if (!got) continue;
-            setLive((prev) => ({ ...prev, ...Object.fromEntries(
-              (Object.keys(next) as SensorKey[]).filter((k) => next[k]).map((k) => [k, next[k]]),
-            ) }));
-            if (b != null) setBattery(b);
-            setReceiving(true);
-          }
-          // also try parsing the tail when the sketch sends without newlines
-          if (bufferRef.current.length > 2 && /[:={]/.test(bufferRef.current)) {
-            const { live: next, battery: b, got } = parsePacket(bufferRef.current, EMPTY_LIVE);
-            if (got) {
-              setLive((prev) => ({ ...prev, ...Object.fromEntries(
-                (Object.keys(next) as SensorKey[]).filter((k) => next[k]).map((k) => [k, next[k]]),
-              ) }));
-              if (b != null) setBattery(b);
-              setReceiving(true);
-              bufferRef.current = "";
-            }
-          }
+          for (const line of parts) processLine(line);
         });
 
         // battery level is optional — don't fail the connection without it
@@ -188,18 +213,68 @@ export function CollarProvider({ children }: { children: ReactNode }) {
           : "Couldn't connect to the collar. Make sure it's on and nearby, then try again.");
       }
     })();
-  }, [teardown]);
+  }, [processLine, teardown]);
+
+  const connectUsb = useCallback(() => {
+    const nav = navigator as Navigator & {
+      serial?: { requestPort: (options?: unknown) => Promise<SerialPortLike> };
+    };
+    if (!nav.serial) {
+      setError("USB serial is unavailable. Open localhost in Chrome, Edge, or Brave on desktop.");
+      return;
+    }
+    setError(null);
+    setState("connecting");
+    void (async () => {
+      try {
+        const port = await nav.serial!.requestPort({
+          filters: [{ usbVendorId: 0x303a, usbProductId: 0x1001 }],
+        });
+        await port.open({ baudRate: 115200 });
+        serialPortRef.current = port;
+        setTransport("usb");
+        setState("connected");
+        bufferRef.current = "";
+        const reader = port.readable?.getReader();
+        if (!reader) throw new Error("The selected USB port is not readable.");
+        serialReaderRef.current = reader;
+        while (serialPortRef.current === port) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (!value) continue;
+          bufferRef.current += new TextDecoder().decode(value, { stream: true });
+          const parts = bufferRef.current.split("\n");
+          bufferRef.current = parts.pop() ?? "";
+          for (const line of parts) processLine(line);
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        teardown();
+        setError(/cancel|No port selected/i.test(message)
+          ? null
+          : `Couldn't connect over USB: ${message}`);
+      }
+    })();
+  }, [processLine, teardown]);
+
+  const connect = useCallback((requested: CollarTransport = "usb") => {
+    if (requested === "bluetooth") connectBluetooth();
+    else connectUsb();
+  }, [connectBluetooth, connectUsb]);
 
   const disconnect = useCallback(() => {
     try { deviceRef.current?.gatt?.disconnect(); } catch { /* ignore */ }
     teardown();
   }, [teardown]);
 
-  useEffect(() => () => { try { deviceRef.current?.gatt?.disconnect(); } catch { /* ignore */ } }, []);
+  useEffect(() => () => {
+    try { deviceRef.current?.gatt?.disconnect(); } catch { /* ignore */ }
+    closeSerial();
+  }, [closeSerial]);
 
   return (
     <Ctx.Provider value={{
-      state, connected: state === "connected", receiving, battery, live, error, connect, disconnect,
+      state, connected: state === "connected", receiving, battery, live, transport, error, connect, disconnect,
     }}>
       {children}
     </Ctx.Provider>

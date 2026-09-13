@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import { useState, type ReactNode, type CSSProperties } from "react";
 import {
-  QrCode, FileDown, Activity, Thermometer, Footprints, Moon,
+  QrCode, FileDown, Activity, Thermometer, Droplets, Footprints, Moon,
   Syringe, Check, Clock, AlertTriangle, Stethoscope, Cross, CheckCircle2,
 } from "lucide-react";
 import { useT, useLanguage } from "@/context/LanguageContext";
@@ -63,12 +63,15 @@ function Report() {
 
   const tempPoints = getSeries("temp", windowMs[tab]);
   const motionPoints = getSeries("motion", windowMs[tab]);
+  const humidityPoints = getSeries("humidity", windowMs[tab]);
   const pressurePoints = getSeries("pressure", windowMs[tab]);
   const tempData = series("temp");
-  const stepsData = series("motion");
+  const movementData = series("motion");
+  const humidityData = series("humidity");
   const pressureData = series("pressure");
   const avgTemp = average(tempPoints);
-  const avgSteps = average(motionPoints);
+  const avgMovement = average(motionPoints);
+  const avgHumidity = average(humidityPoints);
   const avgPressure = average(pressurePoints);
 
   return (
@@ -89,7 +92,7 @@ function Report() {
 
         <div style={{ position: "relative", zIndex: 1 }}>
           <HeroBanner pet={pet} />
-          <HeroCard avgTemp={avgTemp} avgSteps={avgSteps} avgPressure={avgPressure} />
+          <HeroCard avgTemp={avgTemp} avgHumidity={avgHumidity} avgMovement={avgMovement} />
 
           {/* Time filter tabs */}
           <div
@@ -131,12 +134,12 @@ function Report() {
 
           <SectionDivider jp="センサーデータ" en="Sensor Data" />
 
-          {/* Temperature */}
+          {/* Environmental temperature */}
           <ChartCard
             accent={C.moss}
             icon={<Thermometer size={18} color={C.moss} />}
-            titleJp="体温履歴"
-            titleEn="Temperature History"
+            titleJp="環境温度"
+            titleEn="Environmental Temperature"
             chipText={avgTemp == null ? "—" : `Avg ${avgTemp.toFixed(1)}°C`}
             chipBg="color-mix(in oklab, var(--acc-deep) 15.0%, transparent)"
             chipBorder="color-mix(in oklab, var(--acc-deep) 30.0%, transparent)"
@@ -153,10 +156,7 @@ function Report() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
                 <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[37.5, 39.5]} tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <ReferenceArea y1={38.0} y2={39.2} fill={C.moss} fillOpacity={0.08} />
-                <ReferenceLine y={38.5} stroke={C.moss} strokeDasharray="4 4" strokeOpacity={0.4}
-                  label={{ value: t("正常", "Normal"), position: "right", fill: C.moss, fontSize: 10 }} />
+                <YAxis tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
                 <Tooltip content={<NiceTooltip suffix="°C" />} />
                 <Area type="monotone" dataKey="v" stroke={C.moss} strokeWidth={2.5} fill="url(#tempFill)" isAnimationActive={false}
                   dot={{ r: 3, fill: C.moss, stroke: C.bone, strokeWidth: 1.5 }} animationDuration={1000} />
@@ -165,20 +165,44 @@ function Report() {
             )}
           </ChartCard>
 
-          {/* Activity Steps */}
+          {/* Environmental humidity */}
+          <ChartCard
+            accent={C.moss}
+            icon={<Droplets size={18} color={C.moss} />}
+            titleJp="環境湿度"
+            titleEn="Relative Humidity"
+            chipText={avgHumidity == null ? "—" : `Avg ${avgHumidity.toFixed(1)}% RH`}
+            chipBg="color-mix(in oklab, var(--acc-deep) 15.0%, transparent)"
+            chipBorder="color-mix(in oklab, var(--acc-deep) 30.0%, transparent)"
+            chipColor={C.moss}
+          >
+            {humidityData.length === 0 ? <EmptyChart /> : (
+            <ResponsiveContainer width="100%" height={160}>
+              <AreaChart data={humidityData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
+                <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
+                <Tooltip content={<NiceTooltip suffix="% RH" />} />
+                <Area type="monotone" dataKey="v" stroke={C.moss} strokeWidth={2.5} fill={C.tan} fillOpacity={0.2} isAnimationActive={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+            )}
+          </ChartCard>
+
+          {/* Motion intensity */}
           <ChartCard
             accent={C.tan}
             icon={<Footprints size={18} color={C.kombu} />}
-            titleJp="運動・歩数"
-            titleEn="Activity Steps"
-            chipText={avgSteps == null ? "—" : `Avg ${Math.round(avgSteps).toLocaleString()}`}
+            titleJp="運動強度"
+            titleEn="Movement Intensity"
+            chipText={avgMovement == null ? "—" : `Avg ${avgMovement.toFixed(2)} m/s²`}
             chipBg="color-mix(in oklab, var(--acc-strong) 30.0%, transparent)"
             chipBorder="color-mix(in oklab, var(--acc-strong) 60.0%, transparent)"
             chipColor={C.cafe}
           >
-            {stepsData.length === 0 ? <EmptyChart /> : (
+            {movementData.length === 0 ? <EmptyChart /> : (
             <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={stepsData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+              <BarChart data={movementData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
                 <defs>
                   <linearGradient id="stepsFill" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={C.kombu} stopOpacity={1} />
@@ -188,9 +212,7 @@ function Report() {
                 <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
                 <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <ReferenceLine y={3000} stroke={C.kombu} strokeDasharray="4 4" strokeOpacity={0.4}
-                  label={{ value: t("目標", "Goal"), position: "right", fill: C.kombu, fontSize: 10 }} />
-                <Tooltip content={<NiceTooltip suffix="" />} />
+                <Tooltip content={<NiceTooltip suffix=" m/s²" />} />
                 <Bar dataKey="v" fill="url(#stepsFill)" radius={[6, 6, 0, 0]} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
@@ -254,13 +276,13 @@ function EmptyChart() {
   );
 }
 
-function HeroCard({ avgTemp, avgSteps, avgPressure }: {
-  avgTemp: number | null; avgSteps: number | null; avgPressure: number | null;
+function HeroCard({ avgTemp, avgHumidity, avgMovement }: {
+  avgTemp: number | null; avgHumidity: number | null; avgMovement: number | null;
 }) {
   const t = useT();
   const { connected, receiving, live } = useCollar();
-  const active = (Object.keys(live) as (keyof typeof live)[]).filter((k) => live[k]).length;
-  const score = receiving ? Math.round((active / 5) * 100) : null;
+  const active = [live.temp, live.humidity, live.motion].filter(Boolean).length;
+  const score = receiving ? Math.round((active / 3) * 100) : null;
   const r = 44;
   const circ = 2 * Math.PI * r;
   const offset = circ - ((score ?? 0) / 100) * circ;
@@ -292,13 +314,13 @@ function HeroCard({ avgTemp, avgSteps, avgPressure }: {
 
           <div style={{ display: "flex", flexDirection: "column" }}>
             <StatRow icon={<Thermometer size={16} color={C.kombu} />}
-              labelJp="体温" labelEn="Avg Temp" value={avgTemp == null ? "—" : `${avgTemp.toFixed(1)}°C`} />
+              labelJp="環境温度" labelEn="Avg Environment" value={avgTemp == null ? "—" : `${avgTemp.toFixed(1)}°C`} />
+            <div style={{ height: 1, background: "color-mix(in oklab, var(--acc-deep) 20.0%, transparent)" }} />
+            <StatRow icon={<Droplets size={16} color={C.kombu} />}
+              labelJp="湿度" labelEn="Avg Humidity" value={avgHumidity == null ? "—" : `${avgHumidity.toFixed(1)}% RH`} />
             <div style={{ height: 1, background: "color-mix(in oklab, var(--acc-deep) 20.0%, transparent)" }} />
             <StatRow icon={<Footprints size={16} color={C.kombu} />}
-              labelJp="歩数" labelEn="Avg Motion" value={avgSteps == null ? "—" : Math.round(avgSteps).toLocaleString()} />
-            <div style={{ height: 1, background: "color-mix(in oklab, var(--acc-deep) 20.0%, transparent)" }} />
-            <StatRow icon={<Activity size={16} color={C.kombu} />}
-              labelJp="圧力" labelEn="Avg Pressure" value={avgPressure == null ? "—" : avgPressure.toFixed(1)} />
+              labelJp="動き" labelEn="Avg Motion" value={avgMovement == null ? "—" : `${avgMovement.toFixed(2)} m/s²`} />
           </div>
         </div>
 
@@ -309,7 +331,7 @@ function HeroCard({ avgTemp, avgSteps, avgPressure }: {
             <CheckCircle2 size={14} color={C.moss} />
             <span style={{ fontSize: 12, color: C.moss, fontWeight: 600 }}>
               {connected
-                ? t("センサー受信中", `${active} of 5 sensors reporting`)
+                ? t("センサー受信中", `${active} of 3 sensors reporting`)
                 : t("首輪が未接続です", "Collar not connected")}
             </span>
           </div>

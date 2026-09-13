@@ -3,10 +3,10 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
-import { cloudflare } from "@cloudflare/vite-plugin";
+import { nitro } from "nitro/vite";
 import path from "node:path";
 
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   server: {
     host: true,
     port: 8080,
@@ -21,9 +21,7 @@ export default defineConfig(({ command }) => ({
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),
     tanstackStart({ server: { entry: "server" } }),
+    nitro(),
     viteReact(),
-    ...(command === "build"
-      ? [cloudflare({ viteEnvironment: { name: "ssr" } })]
-      : []),
   ],
-}));
+});

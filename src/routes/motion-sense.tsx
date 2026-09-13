@@ -102,7 +102,7 @@ function MotionSensePage() {
   const [tab, setTab] = useState<"1d" | "1w" | "1m">("1d");
   const mounted = useMounted(80);
   const { live } = useCollar();
-  const steps = live.motion?.value ?? null;
+  const movement = live.motion?.value ?? null;
 
   return (
     <AppShell
@@ -158,7 +158,7 @@ function MotionSensePage() {
 
         {/* CONTENT */}
         <div className="ms-stack" style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 14, position: "relative", zIndex: 2 }}>
-          <HeroStepCard mounted={mounted} steps={steps} />
+          <HeroMovementCard mounted={mounted} movement={movement} />
           <CardBox>
             <SectionHeader jp="週間アクティビティ" en="Weekly Activity" />
             <NoData
@@ -172,8 +172,8 @@ function MotionSensePage() {
   );
 }
 
-// ---------- Card 1: Live steps ----------
-function HeroStepCard({ steps }: { mounted: boolean; steps: number | null }) {
+// ---------- Card 1: Live motion intensity ----------
+function HeroMovementCard({ movement }: { mounted: boolean; movement: number | null }) {
   const t = useT();
   return (
     <div style={{
@@ -182,17 +182,17 @@ function HeroStepCard({ steps }: { mounted: boolean; steps: number | null }) {
       padding: 24,
       boxShadow: "0 12px 36px color-mix(in oklab, var(--acc-deep) 15.0%, transparent)",
     }}>
-      <SectionHeader jp="現在の歩数" en="Steps (live)" />
+      <SectionHeader jp="現在の動き" en="Movement intensity (live)" />
       <div className="flex items-baseline" style={{ gap: 6 }}>
         <span style={{ fontSize: 40, fontWeight: 800, color: C.sumi, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
-          {steps == null ? DASH : steps.toLocaleString()}
+          {movement == null ? DASH : movement.toFixed(2)}
         </span>
-        <span style={{ fontSize: 15, color: C.rose, fontWeight: 600 }}>steps</span>
+        <span style={{ fontSize: 15, color: C.rose, fontWeight: 600 }}>m/s²</span>
       </div>
       <div className="flex items-center" style={{ gap: 6, marginTop: 10 }}>
         <Activity size={14} color={C.rose} />
         <span style={{ fontSize: 12, color: C.ink2 }}>
-          {steps == null
+          {movement == null
             ? t("センサーからのデータを待っています", "Waiting for your collar to report movement")
             : t("コラーからのライブデータ", "Live from your collar")}
         </span>

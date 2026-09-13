@@ -1,6 +1,6 @@
 import { useState, type ReactNode, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import { Bluetooth } from "lucide-react";
+import { Bluetooth, Cable } from "lucide-react";
 import AppShell, { TopBar } from "@/components/AppShell";
 import { useLanguage, useT } from "@/context/LanguageContext";
 import { useCollar } from "@/context/CollarContext";
@@ -46,6 +46,7 @@ export function SensorPage({
   descriptorEn,
   bannerGradient,
   bannerSubtitleColor,
+  requiresCollar = true,
   children,
 }: {
   titleEn: string;
@@ -53,9 +54,10 @@ export function SensorPage({
   descriptorEn?: string;
   bannerGradient?: string;
   bannerSubtitleColor?: string;
+  requiresCollar?: boolean;
   children: ReactNode;
 }) {
-  const { connected, receiving, connect, state, error } = useCollar();
+  const { connected, receiving, connect, state, error, transport } = useCollar();
   return (
     <AppShell
       noPadding
@@ -91,7 +93,7 @@ export function SensorPage({
 
         {/* Content — real collar data only; no dummy numbers */}
         <div className="sp-stack" style={{ padding: "0 16px 16px", marginTop: -36, position: "relative", zIndex: 2 }}>
-          {connected && receiving ? children : (
+          {!requiresCollar || (connected && receiving) ? children : (
             <div
               style={{
                 background: SP.card,
@@ -109,7 +111,9 @@ export function SensorPage({
                   background: "var(--acc-pale)", margin: "0 auto 14px",
                 }}
               >
-                <Bluetooth size={28} strokeWidth={1.8} style={{ color: "var(--acc-strong)" }} />
+                {transport === "bluetooth"
+                  ? <Bluetooth size={28} strokeWidth={1.8} style={{ color: "var(--acc-strong)" }} />
+                  : <Cable size={28} strokeWidth={1.8} style={{ color: "var(--acc-strong)" }} />}
               </div>
               <div style={{ fontSize: 16, fontWeight: 700, color: SP.sumi, fontFamily: "var(--font-display)" }}>
                 {connected ? "Waiting for readings…" : "No collar connected"}
@@ -117,25 +121,32 @@ export function SensorPage({
               <div style={{ fontSize: 13, color: SP.usuzumi, lineHeight: 1.6, marginTop: 6, maxWidth: 260, marginInline: "auto" }}>
                 {connected
                   ? "Your collar is paired. Live data will appear here as soon as it starts streaming from the sensors."
-                  : "This page shows live readings from your pet's smart collar. Connect the collar over Bluetooth to start receiving real sensor data."}
+                  : "Connect the collar over USB on this computer, or use Bluetooth on a supported device, to receive live sensor data."}
               </div>
               {error && (
                 <div style={{ fontSize: 12, color: "var(--accent-red)", marginTop: 10, lineHeight: 1.5 }}>{error}</div>
               )}
               {!connected && (
-                <button
-                  onClick={connect}
-                  disabled={state === "connecting"}
-                  className="press-pop"
-                  style={{
-                    marginTop: 18, height: 42, padding: "0 26px", borderRadius: 21, border: "none",
-                    background: "var(--acc-strong)", color: "var(--primary-foreground)",
-                    fontSize: 14, fontWeight: 700, cursor: "pointer",
-                    opacity: state === "connecting" ? 0.7 : 1,
-                  }}
-                >
-                  {state === "connecting" ? "Pairing…" : "Connect Collar"}
-                </button>
+                <div className="flex items-center justify-center" style={{ gap: 8, marginTop: 18 }}>
+                  <button
+                    onClick={() => connect("usb")}
+                    disabled={state === "connecting"}
+                    className="press-pop"
+                    style={{ height: 42, padding: "0 24px", borderRadius: 21, border: "none", background: "var(--acc-strong)", color: "var(--primary-foreground)", fontSize: 14, fontWeight: 700, cursor: "pointer", opacity: state === "connecting" ? 0.7 : 1 }}
+                  >
+                    {state === "connecting" ? "Connecting…" : "Connect USB"}
+                  </button>
+                  <button
+                    onClick={() => connect("bluetooth")}
+                    disabled={state === "connecting"}
+                    aria-label="Connect over Bluetooth"
+                    title="Connect over Bluetooth"
+                    className="press-pop flex items-center justify-center"
+                    style={{ width: 42, height: 42, borderRadius: 21, border: "1px solid var(--border-subtle)", background: "var(--bg-card)", color: "var(--acc-strong)", opacity: state === "connecting" ? 0.7 : 1 }}
+                  >
+                    <Bluetooth size={18} strokeWidth={2} />
+                  </button>
+                </div>
               )}
               <div style={{ marginTop: 12 }}>
                 <Link to="/home" style={{ fontSize: 12, fontWeight: 600, color: SP.usuzumi, textDecoration: "underline" }}>

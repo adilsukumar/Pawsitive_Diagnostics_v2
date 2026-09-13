@@ -500,7 +500,22 @@ npm run dev
 
 Build for production with `npm run build`.
 
+## Deploying to Vercel
+
+This is a TanStack Start application using Nitro's Vercel adapter.
+
+1. Import the Git repository in Vercel.
+2. Keep the detected framework preset as **TanStack Start**.
+3. Use the repository root as the project root.
+4. Let Vercel use the default install and build commands.
+5. Add any required server-only values under **Settings → Environment Variables**.
+
+The production build command is `bun run build` (or `npm run build`). Vercel
+detects the Nitro output automatically; no output directory override is needed.
+
 ### Optional environment variables
 
 - `AI_API_URL`, `AI_API_KEY`, `AI_MODEL` — any OpenAI-compatible chat endpoint, used for in-app UI translation. Without them the app stays in English.
 - `REPLICATE_API_KEY` — avatar illustration generation.
+
+Do not prefix secrets with `VITE_`; that prefix exposes values to browser code.

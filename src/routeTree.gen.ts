@@ -28,6 +28,7 @@ import { Route as MapRouteImport } from './routes/map'
 import { Route as LightSenseRouteImport } from './routes/light-sense'
 import { Route as LanguageRouteImport } from './routes/language'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as EnvironmentSenseRouteImport } from './routes/environment-sense'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as ClinicsRouteImport } from './routes/clinics'
 import { Route as BreedsRouteImport } from './routes/breeds'
@@ -137,6 +138,11 @@ const HomeRoute = HomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnvironmentSenseRoute = EnvironmentSenseRouteImport.update({
+  id: '/environment-sense',
+  path: '/environment-sense',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommunityRoute = CommunityRouteImport.update({
   id: '/community',
   path: '/community',
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/breeds': typeof BreedsRoute
   '/clinics': typeof ClinicsRoute
   '/community': typeof CommunityRoute
+  '/environment-sense': typeof EnvironmentSenseRoute
   '/home': typeof HomeRoute
   '/language': typeof LanguageRoute
   '/light-sense': typeof LightSenseRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/breeds': typeof BreedsRoute
   '/clinics': typeof ClinicsRoute
   '/community': typeof CommunityRoute
+  '/environment-sense': typeof EnvironmentSenseRoute
   '/home': typeof HomeRoute
   '/language': typeof LanguageRoute
   '/light-sense': typeof LightSenseRoute
@@ -280,6 +288,7 @@ export interface FileRoutesById {
   '/breeds': typeof BreedsRoute
   '/clinics': typeof ClinicsRoute
   '/community': typeof CommunityRoute
+  '/environment-sense': typeof EnvironmentSenseRoute
   '/home': typeof HomeRoute
   '/language': typeof LanguageRoute
   '/light-sense': typeof LightSenseRoute
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/breeds'
     | '/clinics'
     | '/community'
+    | '/environment-sense'
     | '/home'
     | '/language'
     | '/light-sense'
@@ -350,6 +360,7 @@ export interface FileRouteTypes {
     | '/breeds'
     | '/clinics'
     | '/community'
+    | '/environment-sense'
     | '/home'
     | '/language'
     | '/light-sense'
@@ -384,6 +395,7 @@ export interface FileRouteTypes {
     | '/breeds'
     | '/clinics'
     | '/community'
+    | '/environment-sense'
     | '/home'
     | '/language'
     | '/light-sense'
@@ -419,6 +431,7 @@ export interface RootRouteChildren {
   BreedsRoute: typeof BreedsRoute
   ClinicsRoute: typeof ClinicsRoute
   CommunityRoute: typeof CommunityRoute
+  EnvironmentSenseRoute: typeof EnvironmentSenseRoute
   HomeRoute: typeof HomeRoute
   LanguageRoute: typeof LanguageRoute
   LightSenseRoute: typeof LightSenseRoute
@@ -581,6 +594,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/environment-sense': {
+      id: '/environment-sense'
+      path: '/environment-sense'
+      fullPath: '/environment-sense'
+      preLoaderRoute: typeof EnvironmentSenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/community': {
       id: '/community'
       path: '/community'
@@ -683,6 +703,7 @@ const rootRouteChildren: RootRouteChildren = {
   BreedsRoute: BreedsRoute,
   ClinicsRoute: ClinicsRoute,
   CommunityRoute: CommunityRoute,
+  EnvironmentSenseRoute: EnvironmentSenseRoute,
   HomeRoute: HomeRoute,
   LanguageRoute: LanguageRoute,
   LightSenseRoute: LightSenseRoute,

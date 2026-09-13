@@ -13,6 +13,7 @@ import {
   MoreHorizontal,
   Syringe,
   Thermometer,
+  Droplets,
   Moon,
   UtensilsCrossed,
   FileHeart,
@@ -1077,14 +1078,15 @@ function FollowupChips({
 
 function HealthCard({ t }: { t: (jp: string, en: string) => string }) {
   const { live, receiving } = useCollar();
-  const activeSensors = (Object.keys(live) as (keyof typeof live)[]).filter((k) => live[k]).length;
-  const score = receiving ? Math.round((activeSensors / 5) * 100) : null;
+  const activeSensors = [live.temp, live.humidity, live.motion].filter(Boolean).length;
+  const score = receiving ? Math.round((activeSensors / 3) * 100) : null;
   const fmt = (k: keyof typeof live) => {
     const r = live[k];
     return r ? `${r.value}${r.unit ?? ""}` : "—";
   };
   const metrics = [
     { jp: "体温", en: "Temp", value: fmt("temp"), pct: live.temp ? 100 : 0, color: "var(--acc-strong)", bg: "var(--acc-pale)", Icon: Thermometer },
+    { jp: "湿度", en: "Humidity", value: fmt("humidity"), pct: live.humidity ? 100 : 0, color: "var(--accent-matcha)", bg: "var(--acc-pale)", Icon: Droplets },
     { jp: "運動", en: "Activity", value: fmt("motion"), pct: live.motion ? 100 : 0, color: "var(--accent-sora)", bg: "var(--acc2-pale)", Icon: Activity },
     { jp: "圧力", en: "Pressure", value: fmt("pressure"), pct: live.pressure ? 100 : 0, color: "var(--accent-fuji)", bg: "var(--acc-pale)", Icon: Moon },
     { jp: "光", en: "Light", value: fmt("light"), pct: live.light ? 100 : 0, color: "var(--accent-yuzu)", bg: "var(--acc-pale)", Icon: UtensilsCrossed },
