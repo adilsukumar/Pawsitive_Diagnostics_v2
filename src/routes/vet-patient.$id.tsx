@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   Phone, Stethoscope, Pill, ChevronDown, ChevronUp, Plus, Upload, X,
@@ -34,15 +34,15 @@ const TONE: Record<string, { fg: string; bg: string }> = {
   blue: { fg: E.blue, bg: E.blueSoft },
 };
 
-function VitalMini({ label, value, unit, range, decimals = 0 }: { label: string; value: number; unit: string; range: [number, number]; decimals?: number }) {
-  const ok = value >= range[0] && value <= range[1];
+function VitalMini({ label, value, unit, range, decimals = 0 }: { label: string; value: number | null; unit: string; range: [number, number]; decimals?: number }) {
+  const ok = value != null ? (value >= range[0] && value <= range[1]) : true;
   return (
     <div style={{ flex: 1, minWidth: 120, background: E.bg, borderRadius: 10, padding: "10px 12px" }}>
       <div style={{ fontSize: 10.5, fontWeight: 600, color: E.sub, letterSpacing: "0.04em", textTransform: "uppercase" }}>{label}</div>
       <div className="flex items-baseline" style={{ gap: 5, marginTop: 3 }}>
-        <span style={{ fontSize: 17, fontWeight: 800, color: E.ink, fontVariantNumeric: "tabular-nums" }}>{value.toFixed(decimals)}</span>
+        <span style={{ fontSize: 17, fontWeight: 800, color: E.ink, fontVariantNumeric: "tabular-nums" }}>{value != null ? value.toFixed(decimals) : "—"}</span>
         <span style={{ fontSize: 10.5, color: E.sub }}>{unit}</span>
-        <Chip tone={ok ? "green" : "red"} style={{ marginLeft: "auto" }}>{ok ? "Normal" : "Review"}</Chip>
+        <Chip tone={value != null ? (ok ? "green" : "red") : "gray"} style={{ marginLeft: "auto" }}>{value != null ? (ok ? "Normal" : "Review") : "Pending"}</Chip>
       </div>
       <div style={{ fontSize: 10, color: E.faint, marginTop: 3 }}>Ref {range[0]}–{range[1]} {unit}</div>
     </div>
@@ -50,7 +50,7 @@ function VitalMini({ label, value, unit, range, decimals = 0 }: { label: string;
 }
 
 function OverviewTab({ patient }: { patient: VetPatient }) {
-  const vitals = CURRENT_VITALS[patient.id] ?? { hr: 90, temp: 38.5, rr: 20 };
+  const vitals = { hr: null, temp: null, rr: null };
   const base = baselineFor(patient);
   const week = scratchWeekFor(patient.id);
   const { spike, pct } = scratchSpike(week);
@@ -454,3 +454,4 @@ function VetPatientProfile() {
     </VetShell>
   );
 }
+

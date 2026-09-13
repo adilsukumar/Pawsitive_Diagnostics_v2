@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import pawLogo from "@/assets/paw-logo.png";
 import { useAuth } from "@/context/AuthContext";
@@ -81,3 +81,4 @@ function Splash() {
     </div>
   );
 }
+

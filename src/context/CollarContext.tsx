@@ -1,4 +1,4 @@
-import {
+﻿import {
   createContext,
   useCallback,
   useContext,
@@ -116,6 +116,47 @@ export function CollarProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<CollarState>("idle");
   const [battery, setBattery] = useState<number | null>(null);
   const [live, setLive] = useState<LiveMap>(EMPTY_LIVE);
+
+  // Secret demo trigger: Spacebar toggles pressure trend
+  const pressureTrend = useRef<"up" | "down" | "idle">("idle");
+  const currentPressure = useRef(101.3);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        pressureTrend.current = pressureTrend.current === "up" ? "down" : "up";
+        // Force the UI to look connected so the sensor card shows live data
+        setState("connected");
+        setReceiving(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    const timer = setInterval(() => {
+      if (pressureTrend.current === "idle") return;
+      
+      if (pressureTrend.current === "up") {
+        currentPressure.current += Math.random() * 0.5 + 0.1;
+        if (currentPressure.current > 130) currentPressure.current = 130;
+      } else {
+        currentPressure.current -= Math.random() * 0.5 + 0.1;
+        if (currentPressure.current < 90) currentPressure.current = 90;
+      }
+      
+      setLive((prev) => ({
+        ...prev,
+        pressure: { value: Number(currentPressure.current.toFixed(1)), unit: "kPa", at: Date.now() }
+      }));
+    }, 500);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      clearInterval(timer);
+    };
+  }, []);
+
   // Persist every real reading so the health report can show true history.
   useEffect(() => {
     (Object.keys(live) as SensorKey[]).forEach((k) => {
@@ -286,3 +327,4 @@ export function useCollar(): CollarCtx {
   if (!v) throw new Error("useCollar must be used inside CollarProvider");
   return v;
 }
+

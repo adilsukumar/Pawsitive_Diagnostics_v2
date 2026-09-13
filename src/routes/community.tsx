@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import AppShell from "@/components/AppShell";
 import { usePet } from "@/context/PetContext";
 import { useEffect, useMemo, useState, useRef } from "react";
@@ -146,7 +146,7 @@ const ME = { user: "You", userEn: "You", breed: "Shiba Inu" };
 const DOG_POSTS: PostT[] = [
     { id: "1", user: "Priya & Bruno", breed: "Indian Pariah Dog", time: "3h ago", titleJp: "My Indie's temp seems high", titleEn: "My Indie's temp seems high", flair: "健康", up: 47, com: 12, location: "Bandra, Mumbai" },
     { id: "2", user: "Mumbai Animal Lover", breed: "Indian Spitz", time: "5h ago", titleJp: "Recommended vet in Mumbai?", titleEn: "Recommended vet in Mumbai?", flair: "獣医Q&A", up: 23, com: 34, location: "Andheri, Mumbai" },
-    { id: "3", user: "Arjun's Pack", breed: "Labrador Retriever", time: "Yesterday", titleJp: "Our daily walk routine at Marine Drive", titleEn: "Our daily walk routine at Marine Drive", flair: "日常", up: 89, com: 6, location: "Marine Drive, Mumbai" },
+    { id: "3", user: "Arjun's Pack", breed: "Labrador Retriever", time: "Today", titleJp: "Our daily walk routine at Marine Drive", titleEn: "Our daily walk routine at Marine Drive", flair: "日常", up: 89, com: 6, location: "Marine Drive, Mumbai" },
     { id: "4", user: "Lost Pet Support", breed: "Mixed Breed", time: "2h ago", titleJp: "Did you see a black Indie near Bandra station?", titleEn: "Did you see a black Indie near Bandra station?", flair: "迷子", up: 156, com: 28, location: "Bandra, Mumbai" },
 ];
 
@@ -1359,3 +1359,4 @@ function ShareSheet({ onClose, onCopy, onLine }: { onClose: () => void; onCopy: 
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import AppShell, { TopBar } from "@/components/AppShell";
 import {
@@ -14,7 +14,11 @@ import { useT, useLanguage } from "@/context/LanguageContext";
 import { usePet, type PetProfile } from "@/context/PetContext";
 import { useCollar } from "@/context/CollarContext";
 import { getSeries, average, type HistoryKey } from "@/lib/sensorHistory";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { PdfTemplate } from "@/components/PdfTemplate";
 
 export const Route = createFileRoute("/report")({ component: Report });
 
@@ -45,9 +49,35 @@ function Report() {
   const dogName = pet.name || "your pet";
 
   // Real history only — series come from readings the collar actually sent.
-  const [, bump] = useState(0);
+  const [bump, setBump] = useState(0);
+  const [modalType, setModalType] = useState<"qr" | "pdf" | null>(null);
+  const [timeline, setTimeline] = useState("1 Week");
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  const pdfRef = useRef<HTMLDivElement>(null);
+
+  const handleGeneratePdf = async () => {
+    if (!pdfRef.current || generatingPdf) return;
+    setGeneratingPdf(true);
+    toast.loading(t("PDFを生成中…", "Generating PDF..."), { id: "pdf-toast" });
+    try {
+      const canvas = await html2canvas(pdfRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(pet.name + "_HealthReport_" + timeline.replace(/\s+/g, '') + ".pdf");
+      toast.success(t("ダウンロード完了！", "PDF Downloaded!"), { id: "pdf-toast" });
+    } catch (e) {
+      toast.error(t("エラーが発生しました", "Failed to generate PDF"), { id: "pdf-toast" });
+    }
+    setGeneratingPdf(false);
+    setModalType(null);
+  };
+
+  const TIMELINES = ["1 Hour", "1 Day", "3 Days", "1 Week", "2 Weeks", "3 Weeks", "1 Month", "2 Months", "3 Months"];
   useEffect(() => {
-    const h = () => bump((n) => n + 1);
+    const h = () => setBump((n) => n + 1);
     window.addEventListener("sensor-history", h);
     return () => window.removeEventListener("sensor-history", h);
   }, []);
@@ -332,7 +362,7 @@ function HeroCard({ avgTemp, avgHumidity, avgMovement }: {
             <span style={{ fontSize: 12, color: C.moss, fontWeight: 600 }}>
               {connected
                 ? t("センサー受信中", `${active} of 3 sensors reporting`)
-                : t("首輪が未接続です", "Collar not connected")}
+                : t("センサー受信待機中", "Awaiting sensor data")}
             </span>
           </div>
           <span style={{ fontSize: 11, color: C.tan }}>{new Date().toLocaleDateString()}</span>
@@ -524,13 +554,12 @@ function LastVisitCard() {
 }
 
 /* ─────────── QR & PDF Cards ─────────── */
-function QRCard() {
+function QRCard({ onClick }: { onClick: () => void }) {
   const t = useT();
-  const [seed, setSeed] = useState(1);
   return (
     <div style={{
       ...glass,
-      borderLeft: `4px solid ${C.kombu}`,
+      borderLeft: "4px solid {C.kombu}",
       padding: 16,
       display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
     }}>
@@ -543,25 +572,13 @@ function QRCard() {
       <div style={{ fontSize: 13, fontWeight: 700, color: C.cafe, textAlign: "center" }}>
         {t("獣医用QRコード", "Vet QR Code")}
       </div>
-      <div style={{ fontSize: 10, color: C.moss, textAlign: "center" }}>
-        {t("毎回新しいQRを生成", "New QR every visit")}
-      </div>
-      <div style={{
-        width: 80, height: 80, background: C.bone, borderRadius: 8,
-        border: "1px solid color-mix(in oklab, var(--acc-strong) 60.0%, transparent)", padding: 6,
-        display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1,
-      }}>
-        {Array.from({ length: 49 }).map((_, i) => (
-          <div key={`${seed}-${i}`} style={{
-            background: [0, 6, 8, 9, 12, 14, 18, 20, 22, 27, 30, 33, 36, 40, 42, 44, 48].includes(i % 49) || ((i * 7 + seed * 31) % 13 < 5) ? C.cafe : "transparent",
-            borderRadius: 1,
-          }} />
-        ))}
+      <div style={{ fontSize: 10, color: C.moss, textAlign: "center", marginBottom: "auto" }}>
+        {t("毎回新しいQRを生成", "Real-time sync")}
       </div>
       <button
-        onClick={() => { setSeed((s) => s + 1); toast.success(t("新しいQRコードを生成しました", "New vet QR code generated")); }}
+        onClick={onClick}
         style={{
-          width: "100%", height: 40, marginTop: 4,
+          width: "100%", height: 40, marginTop: 12,
           background: C.kombu,
           color: C.bone, fontWeight: 700, fontSize: 13, borderRadius: 12,
           border: "none",
@@ -574,27 +591,17 @@ function QRCard() {
   );
 }
 
-function PDFCard() {
+function PDFCard({ onClick }: { onClick: () => void }) {
   const t = useT();
-  const [generating, setGenerating] = useState(false);
   const items: [string, string][] = [
     ["ワクチン履歴", "Vaccination history"],
     ["最終診察", "Last checkup details"],
-    ["年間データ", "Annual data"],
+    ["年間データ", "Health matrices"],
   ];
-  const exportPdf = () => {
-    if (generating) return;
-    setGenerating(true);
-    toast.success(t("レポートを準備中…", "Preparing report…"));
-    setTimeout(() => {
-      setGenerating(false);
-      window.print();
-    }, 900);
-  };
   return (
     <div style={{
       ...glass,
-      borderLeft: `4px solid ${C.moss}`,
+      borderLeft: "4px solid {C.moss}",
       padding: 16,
       display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
     }}>
@@ -607,7 +614,7 @@ function PDFCard() {
       <div style={{ fontSize: 13, fontWeight: 700, color: C.cafe, textAlign: "center" }}>
         {t("PDF出力", "PDF Export")}
       </div>
-      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 4, marginTop: 4, marginBottom: 8 }}>
         {items.map(([jp, en]) => (
           <div key={en} style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <Check size={12} color={C.kombu} strokeWidth={3} style={{ flexShrink: 0 }} />
@@ -616,30 +623,18 @@ function PDFCard() {
         ))}
       </div>
       <button
-        onClick={exportPdf}
-        disabled={generating}
+        onClick={onClick}
         className="active:scale-[0.97] transition-transform"
         style={{
           width: "100%", height: 42, marginTop: "auto",
-          background: generating
-            ? `linear-gradient(135deg, ${C.moss}, ${C.kombu})`
-            : `linear-gradient(135deg, ${C.kombu}, ${C.moss})`,
+          background: "linear-gradient(135deg, {C.kombu}, {C.moss})",
           color: "#FFFFFF", fontWeight: 700, fontSize: 12, borderRadius: 12,
-          border: "none", cursor: generating ? "default" : "pointer",
-          boxShadow: `0 6px 16px color-mix(in oklab, ${C.kombu} 35%, transparent)`,
+          border: "none", cursor: "pointer",
+          boxShadow: "0 6px 16px color-mix(in oklab, {C.kombu} 35%, transparent)",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
         }}
       >
-        {generating && (
-          <span
-            className="animate-spin"
-            style={{
-              width: 14, height: 14, borderRadius: "50%", display: "inline-block",
-              border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#FFFFFF",
-            }}
-          />
-        )}
-        {generating ? t("生成中…", "Generating…") : t("PDF出力", "Export PDF Report")}
+        {t("PDF出力", "Export PDF Report")}
       </button>
     </div>
   );
@@ -756,3 +751,7 @@ function HeroBanner({ pet }: { pet: PetProfile }) {
 
 // reserved for future overdue states
 void AlertTriangle;
+
+
+
+

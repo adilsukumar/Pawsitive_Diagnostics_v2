@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import AppShell from "@/components/AppShell";
-import { CLINICS } from "@/lib/mock";
+
 import { useNearbyVets } from "@/lib/useNearbyVets";
 
 type ClinicItem = { jp: string; en: string; rating: number; km: number; open: boolean; em: boolean; lat?: number; lon?: number; address?: string; real?: boolean };
@@ -97,7 +97,7 @@ function Clinics() {
   const [videoBooking, setVideoBooking] = useState(false);
   const [dirFor, setDirFor] = useState<ClinicItem | null>(null);
   const { vets, loading: vetsLoading, error: vetsError, refresh: refreshVets, geo: vetsGeo } = useNearbyVets();
-  const source: ClinicItem[] = vets.length ? vets : CLINICS;
+  const source: ClinicItem[] = vets;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -915,3 +915,4 @@ function DirectionsView({ clinic, onClose }: { clinic: ClinicItem; onClose: () =
     </motion.div>
   );
 }
+

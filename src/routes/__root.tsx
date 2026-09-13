@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+﻿import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -78,14 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Pawsitive Diagnostics — Smart Dog Care" },
+      { title: "Pawsitive Diagnostics" },
       { name: "description", content: "Pawsitive Diagnostics: AI-powered smart dog collar app. Track health, location, and connect with vets." },
       { name: "author", content: "Pawsitive Diagnostics" },
-      { property: "og:title", content: "Pawsitive Diagnostics — Smart Dog Care" },
+      { property: "og:title", content: "Pawsitive Diagnostics" },
       { property: "og:description", content: "Pawsitive Diagnostics: AI-powered smart dog collar app. Track health, location, and connect with vets." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Pawsitive Diagnostics — Smart Dog Care" },
+      { name: "twitter:title", content: "Pawsitive Diagnostics" },
       { name: "twitter:description", content: "Pawsitive Diagnostics: AI-powered smart dog collar app. Track health, location, and connect with vets." },
     ],
     links: [
@@ -96,8 +96,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "preconnect",
         href: "https://fonts.gstatic.com",
-        crossOrigin: "anonymous",
-      },
+          crossOrigin: "anonymous",
+        },
+        {
+          rel: "icon",
+          href: "/favicon.png",
+        },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Fira+Sans:wght@400;500;600;700&display=swap",
@@ -119,8 +123,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        <HeadContent />
-      </head>
+          <title>Pawsitive Diagnostics</title>
+          <link rel="icon" type="image/png" href="/favicon.png" />
+          <HeadContent />
+        </head>
       <body>
         {children}
         <Scripts />
@@ -147,3 +153,6 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
+
+

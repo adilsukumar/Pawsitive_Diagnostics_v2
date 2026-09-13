@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import AppShell from "@/components/AppShell";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -72,9 +72,9 @@ function MapScreen() {
         const map = L.map(mapEl.current, { zoomControl: false, attributionControl: false }).setView([20.5937, 78.9629], 5);
         const satellite = L.tileLayer(
           "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          { maxZoom: 19 }
+          { maxZoom: 19, maxNativeZoom: 17 }
         );
-        const street = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 });
+        const street = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, maxNativeZoom: 17 });
         layers.current = { satellite, street };
         satellite.addTo(map);
         leafletMap.current = map;
@@ -414,3 +414,4 @@ function Toggle({ on, onChange, activeColor = "var(--accent-matcha)" }: { on: bo
     </button>
   );
 }
+

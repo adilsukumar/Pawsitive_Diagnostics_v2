@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+﻿import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Bell, ArrowLeft, AlertTriangle, Heart, Syringe } from "lucide-react";
 import { toast } from "sonner";
 import pawLogo from "@/assets/paw-logo.png";
@@ -8,6 +8,7 @@ import { T, useT } from "@/context/LanguageContext";
 import SideDrawer, { HamburgerButton } from "@/components/SideDrawer";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/lib/notifications";
 
 /* Pet-owner routes that veterinarians must never see — vets only get the
    clinical console (/home), body map, e-Rx and their profile. */
@@ -38,10 +39,15 @@ export function TopBar({
   const [sosOpen, setSosOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const navigate = useNavigate();
+    const loc = useLocation();
+
+    useEffect(() => {
+      document.getElementById("main-scroll")?.scrollTo(0, 0);
+    }, [loc.pathname]);
   const t = useT();
   const showTitle = Boolean(titleJp || titleEn);
   // Notifications come from real events only — nothing is pre-filled.
-  const notifications: { Icon: typeof Heart; color: string; text: string; time: string }[] = [];
+  const notifications = useNotifications();
   return (
     <>
       <header className="sticky top-0 z-40" style={{ background: "color-mix(in oklab, var(--bg-topbar) 94%, transparent)", backdropFilter: "blur(16px)", borderBottom: "1px solid var(--border-subtle)" }}>
@@ -62,27 +68,26 @@ export function TopBar({
                 <ArrowLeft size={22} strokeWidth={2} />
               </button>
             )}
-            <Link
-              to="/home"
-              className="flex items-center"
-              style={{ gap: 10, background: "transparent" }}
-              aria-label="Home"
-            >
-              <img
-                src={pawLogo}
-                alt="Pawsitive Diagnostics logo"
-                style={{ width: 36, height: 36, objectFit: "contain", display: "block" }}
-              />
-              <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}>
-                <span style={{ fontSize: 17, fontWeight: 500, color: "var(--text-primary)", fontFamily: "var(--font-display)" }}>
-                  Pawsitive Diagnostics
-                </span>
-                <span style={{ fontSize: 9, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.12em" }}>
-                  Smart Dog Care
-                
-                </span>
-              </div>
-            </Link>
+                          <Link
+                to="/home"
+                className="flex items-center shrink-0"
+                style={{ gap: 10, background: "transparent" }}
+                aria-label="Home"
+              >
+                <img
+                  src={pawLogo}
+                  alt="Pawsitive Diagnostics logo"
+                  style={{ width: 36, height: 36, objectFit: "contain", display: "block" }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1, minWidth: "max-content" }}>
+                  <span style={{ fontSize: 17, fontWeight: 500, color: "var(--text-primary)", fontFamily: "var(--font-display)", whiteSpace: "nowrap", letterSpacing: "-0.02em" }}>
+                    Pawsitive Diagnostics
+                  </span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.12em", whiteSpace: "nowrap" }}>
+                    Smart Dog Care
+                  </span>
+                </div>
+              </Link>
           </div>
           <div className="flex items-center shrink-0" style={{ gap: 6 }}>
             <button
@@ -92,7 +97,7 @@ export function TopBar({
               aria-label={t("通知", "Notifications")}
             >
               <Bell size={22} strokeWidth={1.75} />
-              <span style={{ position: "absolute", top: 7, right: 7, width: 7, height: 7, borderRadius: "50%", background: "var(--accent-red)", border: "2px solid var(--bg-card)" }} />
+              {notifications.length > 0 && <span style={{ position: "absolute", top: 7, right: 7, width: 7, height: 7, borderRadius: "50%", background: "var(--accent-red)", border: "2px solid var(--bg-card)" }} />}
             </button>
             <button
               onClick={() => setSosOpen(true)}
@@ -197,6 +202,10 @@ export default function AppShell({
   const { session, hydrated } = useAuth();
   const loc = useLocation();
   const navigate = useNavigate();
+
+    useEffect(() => {
+      document.getElementById("main-scroll")?.scrollTo(0, 0);
+    }, [loc.pathname]);
 
   // Vet role guard — bounce vets away from pet-owner features
   const vetBlocked =
@@ -310,3 +319,9 @@ export default function AppShell({
     </div>
   );
 }
+
+
+
+
+
+

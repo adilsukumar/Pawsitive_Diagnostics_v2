@@ -9,163 +9,45 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VetVaccinationsRouteImport } from './routes/vet-vaccinations'
-import { Route as VetRxRouteImport } from './routes/vet-rx'
-import { Route as VetReportsRouteImport } from './routes/vet-reports'
-import { Route as VetPatientsRouteImport } from './routes/vet-patients'
-import { Route as VetLabRouteImport } from './routes/vet-lab'
-import { Route as VetInventoryRouteImport } from './routes/vet-inventory'
-import { Route as VetConsultRouteImport } from './routes/vet-consult'
-import { Route as VetBillingRouteImport } from './routes/vet-billing'
-import { Route as VetAppointmentsRouteImport } from './routes/vet-appointments'
-import { Route as TempSenseRouteImport } from './routes/temp-sense'
-import { Route as SkinSenseRouteImport } from './routes/skin-sense'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ReportRouteImport } from './routes/report'
-import { Route as PressureSenseRouteImport } from './routes/pressure-sense'
-import { Route as MotionSenseRouteImport } from './routes/motion-sense'
-import { Route as MapRouteImport } from './routes/map'
-import { Route as LightSenseRouteImport } from './routes/light-sense'
-import { Route as LanguageRouteImport } from './routes/language'
-import { Route as HomeRouteImport } from './routes/home'
-import { Route as EnvironmentSenseRouteImport } from './routes/environment-sense'
-import { Route as CommunityRouteImport } from './routes/community'
-import { Route as ClinicsRouteImport } from './routes/clinics'
-import { Route as BreedsRouteImport } from './routes/breeds'
-import { Route as AvatarSetupRouteImport } from './routes/avatar-setup'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as VetPatientIdRouteImport } from './routes/vet-patient.$id'
-import { Route as OnboardingWelcomeRouteImport } from './routes/onboarding.welcome'
-import { Route as OnboardingOwnerRouteImport } from './routes/onboarding.owner'
-import { Route as OnboardingDogRouteImport } from './routes/onboarding.dog'
-import { Route as OnboardingDetailsRouteImport } from './routes/onboarding.details'
+import { Route as AiRouteImport } from './routes/ai'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AvatarSetupRouteImport } from './routes/avatar-setup'
+import { Route as BarkSenseRouteImport } from './routes/bark-sense'
+import { Route as BreedsRouteImport } from './routes/breeds'
+import { Route as ClinicsRouteImport } from './routes/clinics'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as DownloadPdfRouteImport } from './routes/download-pdf'
+import { Route as EnvironmentSenseRouteImport } from './routes/environment-sense'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as LanguageRouteImport } from './routes/language'
+import { Route as LightSenseRouteImport } from './routes/light-sense'
+import { Route as MapRouteImport } from './routes/map'
+import { Route as MotionSenseRouteImport } from './routes/motion-sense'
+import { Route as PressureSenseRouteImport } from './routes/pressure-sense'
+import { Route as ReportRouteImport } from './routes/report'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SkinSenseRouteImport } from './routes/skin-sense'
+import { Route as TempSenseRouteImport } from './routes/temp-sense'
+import { Route as VetAppointmentsRouteImport } from './routes/vet-appointments'
+import { Route as VetBillingRouteImport } from './routes/vet-billing'
+import { Route as VetConsultRouteImport } from './routes/vet-consult'
+import { Route as VetInventoryRouteImport } from './routes/vet-inventory'
+import { Route as VetLabRouteImport } from './routes/vet-lab'
+import { Route as VetPatientsRouteImport } from './routes/vet-patients'
+import { Route as VetReportsRouteImport } from './routes/vet-reports'
+import { Route as VetRxRouteImport } from './routes/vet-rx'
+import { Route as VetVaccinationsRouteImport } from './routes/vet-vaccinations'
 import { Route as OnboardingAvatarRouteImport } from './routes/onboarding.avatar'
+import { Route as OnboardingDetailsRouteImport } from './routes/onboarding.details'
+import { Route as OnboardingDogRouteImport } from './routes/onboarding.dog'
+import { Route as OnboardingOwnerRouteImport } from './routes/onboarding.owner'
+import { Route as OnboardingWelcomeRouteImport } from './routes/onboarding.welcome'
+import { Route as VetPatientIdRouteImport } from './routes/vet-patient.$id'
 
-const VetVaccinationsRoute = VetVaccinationsRouteImport.update({
-  id: '/vet-vaccinations',
-  path: '/vet-vaccinations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VetRxRoute = VetRxRouteImport.update({
-  id: '/vet-rx',
-  path: '/vet-rx',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VetReportsRoute = VetReportsRouteImport.update({
-  id: '/vet-reports',
-  path: '/vet-reports',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VetPatientsRoute = VetPatientsRouteImport.update({
-  id: '/vet-patients',
-  path: '/vet-patients',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VetLabRoute = VetLabRouteImport.update({
-  id: '/vet-lab',
-  path: '/vet-lab',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VetInventoryRoute = VetInventoryRouteImport.update({
-  id: '/vet-inventory',
-  path: '/vet-inventory',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VetConsultRoute = VetConsultRouteImport.update({
-  id: '/vet-consult',
-  path: '/vet-consult',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VetBillingRoute = VetBillingRouteImport.update({
-  id: '/vet-billing',
-  path: '/vet-billing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VetAppointmentsRoute = VetAppointmentsRouteImport.update({
-  id: '/vet-appointments',
-  path: '/vet-appointments',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TempSenseRoute = TempSenseRouteImport.update({
-  id: '/temp-sense',
-  path: '/temp-sense',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SkinSenseRoute = SkinSenseRouteImport.update({
-  id: '/skin-sense',
-  path: '/skin-sense',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReportRoute = ReportRouteImport.update({
-  id: '/report',
-  path: '/report',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PressureSenseRoute = PressureSenseRouteImport.update({
-  id: '/pressure-sense',
-  path: '/pressure-sense',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MotionSenseRoute = MotionSenseRouteImport.update({
-  id: '/motion-sense',
-  path: '/motion-sense',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MapRoute = MapRouteImport.update({
-  id: '/map',
-  path: '/map',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LightSenseRoute = LightSenseRouteImport.update({
-  id: '/light-sense',
-  path: '/light-sense',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LanguageRoute = LanguageRouteImport.update({
-  id: '/language',
-  path: '/language',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HomeRoute = HomeRouteImport.update({
-  id: '/home',
-  path: '/home',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EnvironmentSenseRoute = EnvironmentSenseRouteImport.update({
-  id: '/environment-sense',
-  path: '/environment-sense',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommunityRoute = CommunityRouteImport.update({
-  id: '/community',
-  path: '/community',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClinicsRoute = ClinicsRouteImport.update({
-  id: '/clinics',
-  path: '/clinics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BreedsRoute = BreedsRouteImport.update({
-  id: '/breeds',
-  path: '/breeds',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AvatarSetupRoute = AvatarSetupRouteImport.update({
-  id: '/avatar-setup',
-  path: '/avatar-setup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AiRoute = AiRouteImport.update({
@@ -173,29 +55,144 @@ const AiRoute = AiRouteImport.update({
   path: '/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VetPatientIdRoute = VetPatientIdRouteImport.update({
-  id: '/vet-patient/$id',
-  path: '/vet-patient/$id',
+const AvatarSetupRoute = AvatarSetupRouteImport.update({
+  id: '/avatar-setup',
+  path: '/avatar-setup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OnboardingWelcomeRoute = OnboardingWelcomeRouteImport.update({
-  id: '/onboarding/welcome',
-  path: '/onboarding/welcome',
+const BarkSenseRoute = BarkSenseRouteImport.update({
+  id: '/bark-sense',
+  path: '/bark-sense',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OnboardingOwnerRoute = OnboardingOwnerRouteImport.update({
-  id: '/onboarding/owner',
-  path: '/onboarding/owner',
+const BreedsRoute = BreedsRouteImport.update({
+  id: '/breeds',
+  path: '/breeds',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OnboardingDogRoute = OnboardingDogRouteImport.update({
-  id: '/onboarding/dog',
-  path: '/onboarding/dog',
+const ClinicsRoute = ClinicsRouteImport.update({
+  id: '/clinics',
+  path: '/clinics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DownloadPdfRoute = DownloadPdfRouteImport.update({
+  id: '/download-pdf',
+  path: '/download-pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnvironmentSenseRoute = EnvironmentSenseRouteImport.update({
+  id: '/environment-sense',
+  path: '/environment-sense',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LanguageRoute = LanguageRouteImport.update({
+  id: '/language',
+  path: '/language',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LightSenseRoute = LightSenseRouteImport.update({
+  id: '/light-sense',
+  path: '/light-sense',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MotionSenseRoute = MotionSenseRouteImport.update({
+  id: '/motion-sense',
+  path: '/motion-sense',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressureSenseRoute = PressureSenseRouteImport.update({
+  id: '/pressure-sense',
+  path: '/pressure-sense',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkinSenseRoute = SkinSenseRouteImport.update({
+  id: '/skin-sense',
+  path: '/skin-sense',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TempSenseRoute = TempSenseRouteImport.update({
+  id: '/temp-sense',
+  path: '/temp-sense',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VetAppointmentsRoute = VetAppointmentsRouteImport.update({
+  id: '/vet-appointments',
+  path: '/vet-appointments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VetBillingRoute = VetBillingRouteImport.update({
+  id: '/vet-billing',
+  path: '/vet-billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VetConsultRoute = VetConsultRouteImport.update({
+  id: '/vet-consult',
+  path: '/vet-consult',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VetInventoryRoute = VetInventoryRouteImport.update({
+  id: '/vet-inventory',
+  path: '/vet-inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VetLabRoute = VetLabRouteImport.update({
+  id: '/vet-lab',
+  path: '/vet-lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VetPatientsRoute = VetPatientsRouteImport.update({
+  id: '/vet-patients',
+  path: '/vet-patients',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VetReportsRoute = VetReportsRouteImport.update({
+  id: '/vet-reports',
+  path: '/vet-reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VetRxRoute = VetRxRouteImport.update({
+  id: '/vet-rx',
+  path: '/vet-rx',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VetVaccinationsRoute = VetVaccinationsRouteImport.update({
+  id: '/vet-vaccinations',
+  path: '/vet-vaccinations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingAvatarRoute = OnboardingAvatarRouteImport.update({
+  id: '/onboarding/avatar',
+  path: '/onboarding/avatar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingDetailsRoute = OnboardingDetailsRouteImport.update({
@@ -203,9 +200,24 @@ const OnboardingDetailsRoute = OnboardingDetailsRouteImport.update({
   path: '/onboarding/details',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OnboardingAvatarRoute = OnboardingAvatarRouteImport.update({
-  id: '/onboarding/avatar',
-  path: '/onboarding/avatar',
+const OnboardingDogRoute = OnboardingDogRouteImport.update({
+  id: '/onboarding/dog',
+  path: '/onboarding/dog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingOwnerRoute = OnboardingOwnerRouteImport.update({
+  id: '/onboarding/owner',
+  path: '/onboarding/owner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingWelcomeRoute = OnboardingWelcomeRouteImport.update({
+  id: '/onboarding/welcome',
+  path: '/onboarding/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VetPatientIdRoute = VetPatientIdRouteImport.update({
+  id: '/vet-patient/$id',
+  path: '/vet-patient/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -214,9 +226,11 @@ export interface FileRoutesByFullPath {
   '/ai': typeof AiRoute
   '/auth': typeof AuthRoute
   '/avatar-setup': typeof AvatarSetupRoute
+  '/bark-sense': typeof BarkSenseRoute
   '/breeds': typeof BreedsRoute
   '/clinics': typeof ClinicsRoute
   '/community': typeof CommunityRoute
+  '/download-pdf': typeof DownloadPdfRoute
   '/environment-sense': typeof EnvironmentSenseRoute
   '/home': typeof HomeRoute
   '/language': typeof LanguageRoute
@@ -249,9 +263,11 @@ export interface FileRoutesByTo {
   '/ai': typeof AiRoute
   '/auth': typeof AuthRoute
   '/avatar-setup': typeof AvatarSetupRoute
+  '/bark-sense': typeof BarkSenseRoute
   '/breeds': typeof BreedsRoute
   '/clinics': typeof ClinicsRoute
   '/community': typeof CommunityRoute
+  '/download-pdf': typeof DownloadPdfRoute
   '/environment-sense': typeof EnvironmentSenseRoute
   '/home': typeof HomeRoute
   '/language': typeof LanguageRoute
@@ -285,9 +301,11 @@ export interface FileRoutesById {
   '/ai': typeof AiRoute
   '/auth': typeof AuthRoute
   '/avatar-setup': typeof AvatarSetupRoute
+  '/bark-sense': typeof BarkSenseRoute
   '/breeds': typeof BreedsRoute
   '/clinics': typeof ClinicsRoute
   '/community': typeof CommunityRoute
+  '/download-pdf': typeof DownloadPdfRoute
   '/environment-sense': typeof EnvironmentSenseRoute
   '/home': typeof HomeRoute
   '/language': typeof LanguageRoute
@@ -322,9 +340,11 @@ export interface FileRouteTypes {
     | '/ai'
     | '/auth'
     | '/avatar-setup'
+    | '/bark-sense'
     | '/breeds'
     | '/clinics'
     | '/community'
+    | '/download-pdf'
     | '/environment-sense'
     | '/home'
     | '/language'
@@ -357,9 +377,11 @@ export interface FileRouteTypes {
     | '/ai'
     | '/auth'
     | '/avatar-setup'
+    | '/bark-sense'
     | '/breeds'
     | '/clinics'
     | '/community'
+    | '/download-pdf'
     | '/environment-sense'
     | '/home'
     | '/language'
@@ -392,9 +414,11 @@ export interface FileRouteTypes {
     | '/ai'
     | '/auth'
     | '/avatar-setup'
+    | '/bark-sense'
     | '/breeds'
     | '/clinics'
     | '/community'
+    | '/download-pdf'
     | '/environment-sense'
     | '/home'
     | '/language'
@@ -428,9 +452,11 @@ export interface RootRouteChildren {
   AiRoute: typeof AiRoute
   AuthRoute: typeof AuthRoute
   AvatarSetupRoute: typeof AvatarSetupRoute
+  BarkSenseRoute: typeof BarkSenseRoute
   BreedsRoute: typeof BreedsRoute
   ClinicsRoute: typeof ClinicsRoute
   CommunityRoute: typeof CommunityRoute
+  DownloadPdfRoute: typeof DownloadPdfRoute
   EnvironmentSenseRoute: typeof EnvironmentSenseRoute
   HomeRoute: typeof HomeRoute
   LanguageRoute: typeof LanguageRoute
@@ -461,179 +487,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/vet-vaccinations': {
-      id: '/vet-vaccinations'
-      path: '/vet-vaccinations'
-      fullPath: '/vet-vaccinations'
-      preLoaderRoute: typeof VetVaccinationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vet-rx': {
-      id: '/vet-rx'
-      path: '/vet-rx'
-      fullPath: '/vet-rx'
-      preLoaderRoute: typeof VetRxRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vet-reports': {
-      id: '/vet-reports'
-      path: '/vet-reports'
-      fullPath: '/vet-reports'
-      preLoaderRoute: typeof VetReportsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vet-patients': {
-      id: '/vet-patients'
-      path: '/vet-patients'
-      fullPath: '/vet-patients'
-      preLoaderRoute: typeof VetPatientsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vet-lab': {
-      id: '/vet-lab'
-      path: '/vet-lab'
-      fullPath: '/vet-lab'
-      preLoaderRoute: typeof VetLabRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vet-inventory': {
-      id: '/vet-inventory'
-      path: '/vet-inventory'
-      fullPath: '/vet-inventory'
-      preLoaderRoute: typeof VetInventoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vet-consult': {
-      id: '/vet-consult'
-      path: '/vet-consult'
-      fullPath: '/vet-consult'
-      preLoaderRoute: typeof VetConsultRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vet-billing': {
-      id: '/vet-billing'
-      path: '/vet-billing'
-      fullPath: '/vet-billing'
-      preLoaderRoute: typeof VetBillingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vet-appointments': {
-      id: '/vet-appointments'
-      path: '/vet-appointments'
-      fullPath: '/vet-appointments'
-      preLoaderRoute: typeof VetAppointmentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/temp-sense': {
-      id: '/temp-sense'
-      path: '/temp-sense'
-      fullPath: '/temp-sense'
-      preLoaderRoute: typeof TempSenseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/skin-sense': {
-      id: '/skin-sense'
-      path: '/skin-sense'
-      fullPath: '/skin-sense'
-      preLoaderRoute: typeof SkinSenseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/report': {
-      id: '/report'
-      path: '/report'
-      fullPath: '/report'
-      preLoaderRoute: typeof ReportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pressure-sense': {
-      id: '/pressure-sense'
-      path: '/pressure-sense'
-      fullPath: '/pressure-sense'
-      preLoaderRoute: typeof PressureSenseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/motion-sense': {
-      id: '/motion-sense'
-      path: '/motion-sense'
-      fullPath: '/motion-sense'
-      preLoaderRoute: typeof MotionSenseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/map': {
-      id: '/map'
-      path: '/map'
-      fullPath: '/map'
-      preLoaderRoute: typeof MapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/light-sense': {
-      id: '/light-sense'
-      path: '/light-sense'
-      fullPath: '/light-sense'
-      preLoaderRoute: typeof LightSenseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/language': {
-      id: '/language'
-      path: '/language'
-      fullPath: '/language'
-      preLoaderRoute: typeof LanguageRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/home': {
-      id: '/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof HomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/environment-sense': {
-      id: '/environment-sense'
-      path: '/environment-sense'
-      fullPath: '/environment-sense'
-      preLoaderRoute: typeof EnvironmentSenseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/community': {
-      id: '/community'
-      path: '/community'
-      fullPath: '/community'
-      preLoaderRoute: typeof CommunityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clinics': {
-      id: '/clinics'
-      path: '/clinics'
-      fullPath: '/clinics'
-      preLoaderRoute: typeof ClinicsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/breeds': {
-      id: '/breeds'
-      path: '/breeds'
-      fullPath: '/breeds'
-      preLoaderRoute: typeof BreedsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/avatar-setup': {
-      id: '/avatar-setup'
-      path: '/avatar-setup'
-      fullPath: '/avatar-setup'
-      preLoaderRoute: typeof AvatarSetupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai': {
@@ -643,39 +501,200 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/vet-patient/$id': {
-      id: '/vet-patient/$id'
-      path: '/vet-patient/$id'
-      fullPath: '/vet-patient/$id'
-      preLoaderRoute: typeof VetPatientIdRouteImport
+    '/avatar-setup': {
+      id: '/avatar-setup'
+      path: '/avatar-setup'
+      fullPath: '/avatar-setup'
+      preLoaderRoute: typeof AvatarSetupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/onboarding/welcome': {
-      id: '/onboarding/welcome'
-      path: '/onboarding/welcome'
-      fullPath: '/onboarding/welcome'
-      preLoaderRoute: typeof OnboardingWelcomeRouteImport
+    '/bark-sense': {
+      id: '/bark-sense'
+      path: '/bark-sense'
+      fullPath: '/bark-sense'
+      preLoaderRoute: typeof BarkSenseRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/onboarding/owner': {
-      id: '/onboarding/owner'
-      path: '/onboarding/owner'
-      fullPath: '/onboarding/owner'
-      preLoaderRoute: typeof OnboardingOwnerRouteImport
+    '/breeds': {
+      id: '/breeds'
+      path: '/breeds'
+      fullPath: '/breeds'
+      preLoaderRoute: typeof BreedsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/onboarding/dog': {
-      id: '/onboarding/dog'
-      path: '/onboarding/dog'
-      fullPath: '/onboarding/dog'
-      preLoaderRoute: typeof OnboardingDogRouteImport
+    '/clinics': {
+      id: '/clinics'
+      path: '/clinics'
+      fullPath: '/clinics'
+      preLoaderRoute: typeof ClinicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/download-pdf': {
+      id: '/download-pdf'
+      path: '/download-pdf'
+      fullPath: '/download-pdf'
+      preLoaderRoute: typeof DownloadPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/environment-sense': {
+      id: '/environment-sense'
+      path: '/environment-sense'
+      fullPath: '/environment-sense'
+      preLoaderRoute: typeof EnvironmentSenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/language': {
+      id: '/language'
+      path: '/language'
+      fullPath: '/language'
+      preLoaderRoute: typeof LanguageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/light-sense': {
+      id: '/light-sense'
+      path: '/light-sense'
+      fullPath: '/light-sense'
+      preLoaderRoute: typeof LightSenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/motion-sense': {
+      id: '/motion-sense'
+      path: '/motion-sense'
+      fullPath: '/motion-sense'
+      preLoaderRoute: typeof MotionSenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pressure-sense': {
+      id: '/pressure-sense'
+      path: '/pressure-sense'
+      fullPath: '/pressure-sense'
+      preLoaderRoute: typeof PressureSenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skin-sense': {
+      id: '/skin-sense'
+      path: '/skin-sense'
+      fullPath: '/skin-sense'
+      preLoaderRoute: typeof SkinSenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/temp-sense': {
+      id: '/temp-sense'
+      path: '/temp-sense'
+      fullPath: '/temp-sense'
+      preLoaderRoute: typeof TempSenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vet-appointments': {
+      id: '/vet-appointments'
+      path: '/vet-appointments'
+      fullPath: '/vet-appointments'
+      preLoaderRoute: typeof VetAppointmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vet-billing': {
+      id: '/vet-billing'
+      path: '/vet-billing'
+      fullPath: '/vet-billing'
+      preLoaderRoute: typeof VetBillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vet-consult': {
+      id: '/vet-consult'
+      path: '/vet-consult'
+      fullPath: '/vet-consult'
+      preLoaderRoute: typeof VetConsultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vet-inventory': {
+      id: '/vet-inventory'
+      path: '/vet-inventory'
+      fullPath: '/vet-inventory'
+      preLoaderRoute: typeof VetInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vet-lab': {
+      id: '/vet-lab'
+      path: '/vet-lab'
+      fullPath: '/vet-lab'
+      preLoaderRoute: typeof VetLabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vet-patients': {
+      id: '/vet-patients'
+      path: '/vet-patients'
+      fullPath: '/vet-patients'
+      preLoaderRoute: typeof VetPatientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vet-reports': {
+      id: '/vet-reports'
+      path: '/vet-reports'
+      fullPath: '/vet-reports'
+      preLoaderRoute: typeof VetReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vet-rx': {
+      id: '/vet-rx'
+      path: '/vet-rx'
+      fullPath: '/vet-rx'
+      preLoaderRoute: typeof VetRxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vet-vaccinations': {
+      id: '/vet-vaccinations'
+      path: '/vet-vaccinations'
+      fullPath: '/vet-vaccinations'
+      preLoaderRoute: typeof VetVaccinationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding/avatar': {
+      id: '/onboarding/avatar'
+      path: '/onboarding/avatar'
+      fullPath: '/onboarding/avatar'
+      preLoaderRoute: typeof OnboardingAvatarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding/details': {
@@ -685,11 +704,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingDetailsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/onboarding/avatar': {
-      id: '/onboarding/avatar'
-      path: '/onboarding/avatar'
-      fullPath: '/onboarding/avatar'
-      preLoaderRoute: typeof OnboardingAvatarRouteImport
+    '/onboarding/dog': {
+      id: '/onboarding/dog'
+      path: '/onboarding/dog'
+      fullPath: '/onboarding/dog'
+      preLoaderRoute: typeof OnboardingDogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding/owner': {
+      id: '/onboarding/owner'
+      path: '/onboarding/owner'
+      fullPath: '/onboarding/owner'
+      preLoaderRoute: typeof OnboardingOwnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding/welcome': {
+      id: '/onboarding/welcome'
+      path: '/onboarding/welcome'
+      fullPath: '/onboarding/welcome'
+      preLoaderRoute: typeof OnboardingWelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vet-patient/$id': {
+      id: '/vet-patient/$id'
+      path: '/vet-patient/$id'
+      fullPath: '/vet-patient/$id'
+      preLoaderRoute: typeof VetPatientIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -700,9 +740,11 @@ const rootRouteChildren: RootRouteChildren = {
   AiRoute: AiRoute,
   AuthRoute: AuthRoute,
   AvatarSetupRoute: AvatarSetupRoute,
+  BarkSenseRoute: BarkSenseRoute,
   BreedsRoute: BreedsRoute,
   ClinicsRoute: ClinicsRoute,
   CommunityRoute: CommunityRoute,
+  DownloadPdfRoute: DownloadPdfRoute,
   EnvironmentSenseRoute: EnvironmentSenseRoute,
   HomeRoute: HomeRoute,
   LanguageRoute: LanguageRoute,

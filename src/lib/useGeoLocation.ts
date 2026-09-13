@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 
 export interface GeoState {
   /** Full label, e.g. "Bandra West, Mumbai" */
@@ -14,6 +14,7 @@ export interface GeoState {
 
 const FALLBACK_LABEL = "Bandra, Mumbai";
 const FALLBACK_SHORT = "Bandra";
+const FALLBACK_COORDS = { lat: 19.0596, lon: 72.8295 };
 const CACHE_KEY = "pawsitive_geo";
 /** Only reverse-geocode again after moving this far (metres) */
 const REGEOCODE_MIN_MOVE_M = 150;
@@ -86,7 +87,7 @@ export function useGeoLocation(): GeoState {
           denied: false,
           tracking: false,
         }
-      : { label: FALLBACK_LABEL, short: FALLBACK_SHORT, coords: null, loading: true, denied: false, tracking: false };
+      : { label: FALLBACK_LABEL, short: FALLBACK_SHORT, coords: FALLBACK_COORDS, loading: true, denied: false, tracking: false };
   });
 
   const lastGeocode = useRef<{ at: number; lat: number; lon: number } | null>(null);
@@ -135,7 +136,7 @@ export function useGeoLocation(): GeoState {
       setState(
         cached
           ? { label: cached.label, short: cached.short, coords: { lat: cached.lat, lon: cached.lon }, loading: false, denied: true, tracking: false }
-          : { label: FALLBACK_LABEL, short: FALLBACK_SHORT, coords: null, loading: false, denied: true, tracking: false }
+          : { label: FALLBACK_LABEL, short: FALLBACK_SHORT, coords: FALLBACK_COORDS, loading: false, denied: true, tracking: false }
       );
     };
 
@@ -153,3 +154,4 @@ export function useGeoLocation(): GeoState {
 
   return state;
 }
+
