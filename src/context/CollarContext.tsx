@@ -113,7 +113,7 @@ function parsePacket(text: string, prev: LiveMap): { live: LiveMap; battery: num
 import { appendReading, type HistoryKey } from "@/lib/sensorHistory";
 
 export function CollarProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<CollarState>("idle");
+  const [state, setState] = useState<CollarState>("connected");
   const [battery, setBattery] = useState<number | null>(null);
   const [live, setLive] = useState<LiveMap>(EMPTY_LIVE);
 
@@ -327,6 +327,7 @@ export function useCollar(): CollarCtx {
   if (!v) throw new Error("useCollar must be used inside CollarProvider");
   return v;
 }
+
 
 
 
