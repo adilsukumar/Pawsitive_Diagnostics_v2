@@ -9,6 +9,7 @@ export const Route = createFileRoute("/bark-sense")({ component: BarkSensePage }
 type EmotionData = { id: string; name: string; desc: string; icon: any; color: string; bg: string; percentage: number };
 
 const EMOTIONS: Record<string, Omit<EmotionData, "percentage">> = {
+  n: { id: "n", name: "Normal / Calm", desc: "Ambient background, no distressed or excited vocals.", icon: Smile, color: "#64748B", bg: "#F8FAFC" },
   h: { id: "h", name: "Happy / Playful", desc: "High energy, positive vocalizations.", icon: Smile, color: "#10B981", bg: "#D1FAE5" },
   f: { id: "f", name: "Fear / Anxiety", desc: "Whining or distressed vocal patterns.", icon: AlertTriangle, color: "#F59E0B", bg: "#FEF3C7" },
   a: { id: "a", name: "Angry / Upset", desc: "Aggressive or territorial barking.", icon: Zap, color: "#EF4444", bg: "#FEE2E2" },
@@ -40,7 +41,7 @@ function AudioVisualizer({ isRecording, activeColor }: { isRecording: boolean; a
 }
 
 function BarkSensePage() {
-  const [currentMood, setCurrentMood] = useState<EmotionData>({ ...EMOTIONS["h"], percentage: 85 });
+  const [currentMood, setCurrentMood] = useState<EmotionData>({ ...EMOTIONS["n"], percentage: 99 });
   const [isRecording, setIsRecording] = useState(true);
 
   // Fluctuating interval for the visualizer to keep moving
@@ -176,3 +177,4 @@ function BarkSensePage() {
     </SensorPage>
   );
 }
+
