@@ -115,11 +115,6 @@ function Step1() {
                 >
                   {b.en}
                 </span>
-                {false && (
-                  <span className="text-[9px] text-center leading-tight" style={{ color: "var(--text-secondary)" }}>
-                    {b.en}
-                  </span>
-                )}
               </button>
             );
           })}

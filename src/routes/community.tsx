@@ -552,9 +552,6 @@ function Community() {
                     >
                       {p.titleEn}
                     </div>
-                    {false && (
-                      <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>{p.titleEn}</div>
-                    )}
                   </button>
 
                   {/* Action bar */}
@@ -900,8 +897,6 @@ function PostDetailSheet({
           <h2 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", marginTop: 14, lineHeight: 1.3 }}>
             {post.titleEn}
           </h2>
-          {false && <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>{post.titleEn}</p>}
-
           {post.body && (
             <p style={{ fontSize: 14, color: "var(--text-primary)", marginTop: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{post.body}</p>
           )}

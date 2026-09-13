@@ -414,9 +414,6 @@ function ChartCard({
             <div style={{ fontSize: 14, fontWeight: 700, color: C.cafe }}>
               {t(titleJp, titleEn)}
             </div>
-            {false && (
-              <div style={{ fontSize: 11, color: C.moss }}>{titleEn}</div>
-            )}
           </div>
         </div>
         <span style={{

@@ -2,7 +2,11 @@ node_modules
 dist
 .output
 .vinxi
+.nitro
+.tanstack
+.vercel
+coverage
 pnpm-lock.yaml
 package-lock.json
 bun.lock
-routeTree.gen.ts
+src/routeTree.gen.ts
