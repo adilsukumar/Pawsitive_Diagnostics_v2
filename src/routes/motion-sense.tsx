@@ -8,6 +8,8 @@ import { usePet, displayName } from "@/context/PetContext";
 import { Activity } from "lucide-react";
 import { useCollar } from "@/context/CollarContext";
 import { NoData, DASH } from "@/components/NoData";
+import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/motion-sense")({ component: MotionSensePage });
 
@@ -102,7 +104,36 @@ function MotionSensePage() {
   const [tab, setTab] = useState<"1d" | "1w" | "1m">("1d");
   const mounted = useMounted(80);
   const { live } = useCollar();
-  const movement = live.motion?.value ?? null;
+
+  const [anomaly, setAnomaly] = useState(false);
+  const [simMotion, setSimMotion] = useState(1.2);
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key.toLowerCase() === "m") {
+        setAnomaly((a) => {
+          const next = !a;
+          if (next) toast.error(t("歩行異常を検知しました", "Gait Abnormality Detected! Limping suspected."));
+          else toast.success(t("正常に戻りました", "Movement Normalized."));
+          return next;
+        });
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [t]);
+
+  useEffect(() => {
+    const int = setInterval(() => {
+      setSimMotion((prev) => {
+        if (anomaly) return 0.4 + Math.random() * 0.3; // low, jerky movement indicating limping
+        return 1.0 + Math.random() * 0.8; // normal movement
+      });
+    }, 1200);
+    return () => clearInterval(int);
+  }, [anomaly]);
+
+  const movement = simMotion;
 
   return (
     <AppShell
