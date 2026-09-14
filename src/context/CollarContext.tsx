@@ -116,6 +116,8 @@ function parsePacket(text: string, prev: LiveMap): { live: LiveMap; battery: num
 }
 
 import { appendReading, type HistoryKey } from "@/lib/sensorHistory";
+import { addNotification } from "@/lib/notifications";
+import { AlertTriangle } from "lucide-react";
 
 export function CollarProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<CollarState>("connected");
@@ -335,6 +337,7 @@ export function useCollar(): CollarCtx {
   if (!v) throw new Error("useCollar must be used inside CollarProvider");
   return v;
 }
+
 
 
 

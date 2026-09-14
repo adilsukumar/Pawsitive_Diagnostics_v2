@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mic, Activity, CalendarDays, Volume2, Smile, AlertTriangle, Frown, Zap } from "lucide-react";
 import { SensorPage } from "@/components/SensorPage";
+import { addNotification } from "@/lib/notifications";
 
 export const Route = createFileRoute("/bark-sense")({ component: BarkSensePage });
 
@@ -177,4 +178,5 @@ function BarkSensePage() {
     </SensorPage>
   );
 }
+
 
