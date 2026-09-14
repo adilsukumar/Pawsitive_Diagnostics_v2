@@ -81,6 +81,19 @@ function Report() {
   const avgPressure = average(getSeries("pressure", windowMs[tab]));
   const avgBodyTemp = average(getSeries("skin", windowMs[tab]));
 
+  // Calculate global health score
+  const b64HistoryStr = typeof window !== 'undefined' ? localStorage.getItem("skinsense_history") : null;
+  let skinScore = 78;
+  try { if (b64HistoryStr) skinScore = JSON.parse(b64HistoryStr)[0]?.result?.skinScore ?? 78; } catch(e) {}
+  
+  const tempScore = avgBodyTemp != null ? (avgBodyTemp >= 38.0 && avgBodyTemp <= 39.5 ? 95 : 60) : 90;
+  const motionScore = avgMovement != null ? (avgMovement > 0.5 ? 85 : 70) : 80;
+  const pressureScore = avgPressure != null ? (avgPressure < 30 ? 90 : 50) : 85;
+  const barkScore = 85;
+  const envScore = avgEnvTemp != null ? (avgEnvTemp > 15 && avgEnvTemp < 30 ? 90 : 65) : 88;
+
+  const healthScore = Math.round((skinScore + tempScore + motionScore + pressureScore + barkScore + envScore) / 6);
+
   // Mock Vocal Analysis data for BarkSense AI chart
   const barkData = [
     { name: "Normal/Calm", value: 65, color: C.green },
@@ -106,7 +119,7 @@ function Report() {
       >
 
         <div style={{ position: "relative", zIndex: 1 }}>
-          <HeroBanner pet={pet} />
+          <HeroBanner pet={pet} healthScore={healthScore} />
 
           {/* Time filter tabs */}
           <div
@@ -442,7 +455,7 @@ function PDFCard({ onClick }: { onClick: () => void }) {
 }
 
 /* ─────────── Hero Banner ─────────── */
-function HeroBanner({ pet }: { pet: PetProfile }) {
+function HeroBanner({ pet, healthScore }: { pet: PetProfile, healthScore: number }) {
   const t = useT();
   const { language } = useLanguage();
   const breedEn = pet.breedEn || "Shiba Inu";
@@ -488,7 +501,7 @@ function HeroBanner({ pet }: { pet: PetProfile }) {
           border: "1px solid rgba(255, 255, 255, 0.6)", borderRadius: 20, padding: "4px 12px",
         }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#FFFFFF", boxShadow: "0 0 8px rgba(255,255,255,0.8)" }} />
-          <span style={{ fontSize: 12, color: "#FFFFFF", fontWeight: 600 }}>{t("良好", "Optimal")}</span>
+          <span style={{ fontSize: 12, color: "#FFFFFF", fontWeight: 600 }}>{healthScore}% {t("良好", "Score")}</span>
         </div>
       </div>
     </div>

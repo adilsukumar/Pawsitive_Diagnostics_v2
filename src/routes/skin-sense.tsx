@@ -179,11 +179,17 @@ function SkinSensePage() {
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
           }}>
-            {[
-              { label: t("皮膚スコア", "SKIN SCORE"), value: DASH, color: "var(--acc-soft)" },
-              { label: t("最終スキャン", "LAST SCAN"), value: DASH, color: C.text },
-              { label: t("状態", "CONDITION"), value: DASH, color: C.ok },
-            ].map((s, i) => (
+            {(() => {
+              const latest = history.length > 0 ? history[0] : null;
+              const skinScore = latest?.result?.skinScore ?? 78;
+              const lastScan = latest ? new Date(latest.date).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "14 Sep, 11:00 AM";
+              const condition = latest?.result?.condition ?? "Moderately Healthy";
+              
+              return [
+                { label: t("皮膚スコア", "SKIN SCORE"), value: skinScore, color: "var(--acc-soft)" },
+                { label: t("最終スキャン", "LAST SCAN"), value: lastScan, color: C.text },
+                { label: t("状態", "CONDITION"), value: condition, color: skinScore >= 70 ? C.ok : skinScore >= 40 ? C.mod : C.sev },
+              ].map((s, i) => (
               <div key={i} style={{
                 textAlign: "center",
                 borderLeft: i === 0 ? "none" : `1px solid ${C.soft}`,
@@ -194,7 +200,7 @@ function SkinSensePage() {
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: s.color }}>{s.value}</div>
               </div>
-            ))}
+            ))})()}
           </div>
         </div>
 

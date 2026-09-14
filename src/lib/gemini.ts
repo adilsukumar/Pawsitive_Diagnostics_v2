@@ -10,6 +10,8 @@ export type SkinAnalysisResult = {
   whatToDo: string;
   whatNotToDo: string;
   foodToAvoid: string;
+  skinScore: number;
+  condition: string;
 };
 
 export async function analyzeSkinImage(base64Image: string): Promise<SkinAnalysisResult> {
@@ -30,7 +32,9 @@ Provide your response strictly as a JSON object matching this TypeScript interfa
   "urgency": "low" | "medium" | "high", // Severity/Urgency for seeing a vet
   "whatToDo": string, // Actionable immediate steps the owner can take
   "whatNotToDo": string, // What the owner should avoid doing (e.g. "Do not scratch", "Do not apply human cream")
-  "foodToAvoid": string // Any specific foods to avoid if this is allergy related, or just general dietary advice
+  "foodToAvoid": string, // Any specific foods to avoid if this is allergy related, or just general dietary advice
+  "skinScore": number, // A health score from 0 to 100 (100 being perfect skin)
+  "condition": string // A short 2-3 word overall condition (e.g. "Moderately Healthy", "Needs Attention")
 }
 Do not include any Markdown formatting blocks (like \\\json) in your output, just return the raw JSON string.
 \;
