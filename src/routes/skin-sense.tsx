@@ -394,7 +394,7 @@ function SkinSensePage() {
           </PinkCard>
 
           {/* ===== SECTION 6: AI INSIGHT ===== */}
-          <AIInsight />
+          <AIInsight result={result} history={history} />
         </div>
       </div>
     </AppShell>
@@ -635,8 +635,16 @@ function AIChat({ b64Photo, result }: { b64Photo: string | null; result: SkinAna
 }
 
 /* ---------- AI Insight ---------- */
-function AIInsight() {
+function AIInsight({ result, history }: { result: SkinAnalysisResult | null, history: HistoryItem[] }) {
   const t = useT();
+  const latest = result || (history.length > 0 ? history[0].result : null);
+  const dateStr = result ? "Just now" : (history.length > 0 ? new Date(history[0].date).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "14 Sep, 11:00 AM");
+  
+  const textEn = latest ? latest.description : "Skin condition is healthy. Improved by 3 points since last check. Continue regular care.";
+  const textJp = latest ? latest.description : "ワンちゃんの皮膚は現在健康な状態です。前回のチェックから3ポイント改善しています。引き続き定期的なケアを続けてください。";
+  
+  const statusEn = latest ? (latest.urgency === "high" ? "Needs Attention" : latest.urgency === "medium" ? "Monitor Carefully" : "Healthy skin ✓") : "Healthy skin ✓";
+  const statusJp = latest ? (latest.urgency === "high" ? "要注意" : latest.urgency === "medium" ? "要観察" : "健康な皮膚 ✓") : "健康な皮膚 ✓";
   return (
     <div style={{
       position: "relative",
@@ -665,8 +673,8 @@ function AIInsight() {
         <div style={{ height: 1, background: "rgba(255,255,255,0.15)", margin: "10px 0 14px" }} />
 
         <Bi
-          jp="ワンちゃんの皮膚は現在健康な状態です。前回のチェックから3ポイント改善しています。引き続き定期的なケアを続けてください。"
-          en="Skin condition is healthy. Improved by 3 points since last check. Continue regular care."
+          jp={textJp}
+          en={textEn}
           jpStyle={{ fontSize: 14, color: "#fff", lineHeight: 1.8 }}
           enStyle={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, marginTop: 6 }}
         />
@@ -689,10 +697,10 @@ function AIInsight() {
             fontSize: 11, fontWeight: 700,
           }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--acc2-strong)" }} />
-            {t("健康な皮膚 ✓", "Healthy skin ✓")}
+            {t(statusJp, statusEn)}
           </span>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
-            {t("更新 10:45", "Updated 10:45")}
+            {t("更新 ", "Updated ")}{dateStr}
           </span>
         </div>
       </div>
