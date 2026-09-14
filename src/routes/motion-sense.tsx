@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import AppShell, { TopBar } from "@/components/AppShell";
 import { SenseBanner } from "@/components/SenseBanner";
@@ -158,7 +158,7 @@ function MotionSensePage() {
 
         {/* CONTENT */}
         <div className="ms-stack" style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 14, position: "relative", zIndex: 2 }}>
-          <HeroMovementCard mounted={mounted} movement={movement} />
+          <HeroMovementCard mounted={mounted} movement={movement} anomaly={anomaly} />
           <CardBox>
             <SectionHeader jp="週間アクティビティ" en="Weekly Activity" />
             <NoData
@@ -173,7 +173,7 @@ function MotionSensePage() {
 }
 
 // ---------- Card 1: Live motion intensity ----------
-function HeroMovementCard({ movement }: { mounted: boolean; movement: number | null }) {
+function HeroMovementCard({ movement, anomaly }: { mounted: boolean; movement: number | null; anomaly?: boolean }) {
   const t = useT();
   return (
     <div style={{
@@ -200,3 +200,4 @@ function HeroMovementCard({ movement }: { mounted: boolean; movement: number | n
     </div>
   );
 }
+
