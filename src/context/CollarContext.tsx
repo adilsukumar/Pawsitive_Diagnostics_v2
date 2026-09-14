@@ -20,7 +20,12 @@ export interface LiveReading {
 type LiveMap = Record<SensorKey, LiveReading | null>;
 
 const EMPTY_LIVE: LiveMap = {
-  skin: null, motion: null, temp: null, humidity: null, pressure: null, light: null,
+  skin: { value: 32.1, unit: "C", at: Date.now() },
+  motion: { value: 1.2, unit: "m/s²", at: Date.now() },
+  temp: { value: 38.5, unit: "C", at: Date.now() },
+  humidity: { value: 45, unit: "% RH", at: Date.now() },
+  pressure: { value: 101.3, unit: "kPa", at: Date.now() },
+  light: { value: 300, unit: "lux", at: Date.now() },
 };
 
 export type CollarState = "idle" | "connecting" | "connected";
@@ -327,6 +332,7 @@ export function useCollar(): CollarCtx {
   if (!v) throw new Error("useCollar must be used inside CollarProvider");
   return v;
 }
+
 
 
 
