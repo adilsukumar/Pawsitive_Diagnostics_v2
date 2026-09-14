@@ -161,6 +161,17 @@ export function CollarProvider({ children }: { children: ReactNode }) {
       }));
     }, 500);
 
+      const fluctuationTimer = setInterval(() => {
+        setLive((prev) => {
+          const newTemp = prev.temp ? prev.temp.value + (Math.random() * 0.2 - 0.1) : 38.5;
+          const newHumidity = prev.humidity ? prev.humidity.value + (Math.random() * 2 - 1) : 45;
+          return {
+            ...prev,
+            temp: { ...prev.temp, value: Number(newTemp.toFixed(1)), at: Date.now(), unit: "C" },
+            humidity: { ...prev.humidity, value: Math.max(0, Math.min(100, Math.round(newHumidity))), at: Date.now(), unit: "% RH" }
+          }
+        });
+      }, 3000);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       clearInterval(timer);
