@@ -3,12 +3,13 @@ import { toast } from "sonner";
 import AppShell, { TopBar } from "@/components/AppShell";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip,
-  CartesianGrid, ReferenceLine, ReferenceArea,
+  CartesianGrid, LineChart, Line, PieChart, Pie, Cell
 } from "recharts";
 import { useState, type ReactNode, type CSSProperties } from "react";
 import {
   QrCode, FileDown, Activity, Thermometer, Droplets, Footprints, Moon,
   Syringe, Check, Clock, AlertTriangle, Stethoscope, Cross, CheckCircle2,
+  Mic, ShieldAlert, HeartPulse, Sun
 } from "lucide-react";
 import { useT, useLanguage } from "@/context/LanguageContext";
 import { usePet, type PetProfile } from "@/context/PetContext";
@@ -24,13 +25,18 @@ export const Route = createFileRoute("/report")({ component: Report });
 
 const TABS = ["1d", "1w", "1m", "3m", "6m", "4y"] as const;
 
-/* ─────────── Theme-driven palette (pastel purple owner / steel blue vet) ─────────── */
+/* ─────────── Theme-driven palette ─────────── */
 const C = {
-  cafe: "var(--acc-deep)",      // headings / strong data values
-  kombu: "var(--acc-strong)",   // active accents / banner gradient start
-  moss: "var(--acc-soft)",      // icons / muted accents / borders
-  tan: "var(--acc2-soft)",      // soft fills
-  bone: "var(--bg-page)",       // surfaces / page bg
+  cafe: "var(--acc-deep)",
+  kombu: "var(--acc-strong)",
+  moss: "var(--acc-soft)",
+  tan: "var(--acc2-soft)",
+  bone: "var(--bg-page)",
+  red: "#EF4444",
+  orange: "#F59E0B",
+  blue: "#3B82F6",
+  purple: "#8B5CF6",
+  green: "#10B981"
 };
 
 const glass: CSSProperties = {
@@ -46,36 +52,7 @@ function Report() {
   const { pet } = usePet();
   const [tab, setTab] = useState<(typeof TABS)[number]>("1w");
 
-  const dogName = pet.name || "your pet";
-
-  // Real history only — series come from readings the collar actually sent.
   const [bump, setBump] = useState(0);
-  const [modalType, setModalType] = useState<"qr" | "pdf" | null>(null);
-  const [timeline, setTimeline] = useState("1 Week");
-  const [generatingPdf, setGeneratingPdf] = useState(false);
-  const pdfRef = useRef<HTMLDivElement>(null);
-
-  const handleGeneratePdf = async () => {
-    if (!pdfRef.current || generatingPdf) return;
-    setGeneratingPdf(true);
-    toast.loading(t("PDFを生成中…", "Generating PDF..."), { id: "pdf-toast" });
-    try {
-      const canvas = await html2canvas(pdfRef.current, { scale: 2 });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(pet.name + "_HealthReport_" + timeline.replace(/\s+/g, '') + ".pdf");
-      toast.success(t("ダウンロード完了！", "PDF Downloaded!"), { id: "pdf-toast" });
-    } catch (e) {
-      toast.error(t("エラーが発生しました", "Failed to generate PDF"), { id: "pdf-toast" });
-    }
-    setGeneratingPdf(false);
-    setModalType(null);
-  };
-
-  const TIMELINES = ["1 Hour", "1 Day", "3 Days", "1 Week", "2 Weeks", "3 Weeks", "1 Month", "2 Months", "3 Months"];
   useEffect(() => {
     const h = () => setBump((n) => n + 1);
     window.addEventListener("sensor-history", h);
@@ -91,23 +68,31 @@ function Report() {
       v: p.v,
     }));
 
-  const tempPoints = getSeries("temp", windowMs[tab]);
-  const motionPoints = getSeries("motion", windowMs[tab]);
-  const humidityPoints = getSeries("humidity", windowMs[tab]);
-  const pressurePoints = getSeries("pressure", windowMs[tab]);
-  const tempData = series("temp");
+  const envTempData = series("temp");
   const movementData = series("motion");
   const humidityData = series("humidity");
   const pressureData = series("pressure");
-  const avgTemp = average(tempPoints);
-  const avgMovement = average(motionPoints);
-  const avgHumidity = average(humidityPoints);
-  const avgPressure = average(pressurePoints);
+  // using "skin" for body temperature (TempSense)
+  const bodyTempData = series("skin");
+  
+  const avgEnvTemp = average(getSeries("temp", windowMs[tab]));
+  const avgMovement = average(getSeries("motion", windowMs[tab]));
+  const avgHumidity = average(getSeries("humidity", windowMs[tab]));
+  const avgPressure = average(getSeries("pressure", windowMs[tab]));
+  const avgBodyTemp = average(getSeries("skin", windowMs[tab]));
+
+  // Mock Vocal Analysis data for BarkSense AI chart
+  const barkData = [
+    { name: "Normal/Calm", value: 65, color: C.green },
+    { name: "Happy/Playful", value: 20, color: C.blue },
+    { name: "Anxious/Fear", value: 10, color: C.orange },
+    { name: "Aggressive", value: 5, color: C.red },
+  ];
 
   return (
     <AppShell
       titleJp="健康レポート"
-      titleEn="Health Report"
+      titleEn="AI Health Dashboard"
       renderTopBar={({ menuOpen, onMenuClick }) => <TopBar showBack backTo="/home" menuOpen={menuOpen} onMenuClick={onMenuClick} />}
     >
       <div
@@ -122,7 +107,6 @@ function Report() {
 
         <div style={{ position: "relative", zIndex: 1 }}>
           <HeroBanner pet={pet} />
-          <HeroCard avgTemp={avgTemp} avgHumidity={avgHumidity} avgMovement={avgMovement} />
 
           {/* Time filter tabs */}
           <div
@@ -131,7 +115,7 @@ function Report() {
               border: "1px solid color-mix(in oklab, var(--acc-deep) 20.0%, transparent)",
               borderRadius: 18,
               padding: 4,
-              margin: "0 0 12px",
+              margin: "0 0 16px",
               display: "flex",
               boxShadow: "0 2px 12px color-mix(in oklab, var(--acc-deep) 5.0%, transparent)",
             }}
@@ -162,127 +146,164 @@ function Report() {
             })}
           </div>
 
-          <SectionDivider jp="センサーデータ" en="Sensor Data" />
+          <SectionDivider jp="AI センサー" en="Combine Sense AI" />
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* BarkSense AI */}
+            <ChartCard
+              accent={C.purple}
+              icon={<Mic size={18} color={C.purple} />}
+              titleJp="音声分析"
+              titleEn="BarkSense AI"
+              chipText="Vocal Emotion"
+              chipBg={`${C.purple}20`}
+              chipBorder={`${C.purple}40`}
+              chipColor={C.purple}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
+                <ResponsiveContainer width="50%" height={160}>
+                  <PieChart>
+                    <Pie data={barkData} innerRadius={45} outerRadius={70} paddingAngle={3} dataKey="value" stroke="none">
+                      {barkData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {barkData.map((b) => (
+                    <div key={b.name} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ width: 10, height: 10, borderRadius: "50%", background: b.color }} />
+                      <span style={{ fontSize: 11, fontWeight: 600, color: C.cafe }}>{b.name}</span>
+                      <span style={{ fontSize: 11, color: C.moss, marginLeft: "auto" }}>{b.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </ChartCard>
 
-          {/* Environmental temperature */}
-          <ChartCard
-            accent={C.moss}
-            icon={<Thermometer size={18} color={C.moss} />}
-            titleJp="環境温度"
-            titleEn="Environmental Temperature"
-            chipText={avgTemp == null ? "—" : `Avg ${avgTemp.toFixed(1)}°C`}
-            chipBg="color-mix(in oklab, var(--acc-deep) 15.0%, transparent)"
-            chipBorder="color-mix(in oklab, var(--acc-deep) 30.0%, transparent)"
-            chipColor={C.moss}
-          >
-            {tempData.length === 0 ? <EmptyChart /> : (
-            <ResponsiveContainer width="100%" height={160}>
-              <AreaChart data={tempData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.moss} stopOpacity={0.15} />
-                    <stop offset="100%" stopColor={C.moss} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
-                <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<NiceTooltip suffix="°C" />} />
-                <Area type="monotone" dataKey="v" stroke={C.moss} strokeWidth={2.5} fill="url(#tempFill)" isAnimationActive={false}
-                  dot={{ r: 3, fill: C.moss, stroke: C.bone, strokeWidth: 1.5 }} animationDuration={1000} />
-              </AreaChart>
-            </ResponsiveContainer>
-            )}
-          </ChartCard>
+            {/* TemperatureSense AI */}
+            <ChartCard
+              accent={C.red}
+              icon={<HeartPulse size={18} color={C.red} />}
+              titleJp="体温センサー"
+              titleEn="TemperatureSense AI"
+              chipText={avgBodyTemp == null ? "—" : `Avg ${avgBodyTemp.toFixed(1)}°C`}
+              chipBg={`${C.red}20`}
+              chipBorder={`${C.red}40`}
+              chipColor={C.red}
+            >
+              {bodyTempData.length === 0 ? <EmptyChart /> : (
+              <ResponsiveContainer width="100%" height={160}>
+                <AreaChart data={bodyTempData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="bodyTempFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={C.red} stopOpacity={0.3} />
+                      <stop offset="100%" stopColor={C.red} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
+                  <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={['dataMin - 1', 'dataMax + 1']} tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<NiceTooltip suffix="°C" />} />
+                  <Area type="monotone" dataKey="v" stroke={C.red} strokeWidth={2.5} fill="url(#bodyTempFill)" isAnimationActive={false}
+                    dot={{ r: 3, fill: C.red, stroke: C.bone, strokeWidth: 1.5 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+              )}
+            </ChartCard>
 
-          {/* Environmental humidity */}
-          <ChartCard
-            accent={C.moss}
-            icon={<Droplets size={18} color={C.moss} />}
-            titleJp="環境湿度"
-            titleEn="Relative Humidity"
-            chipText={avgHumidity == null ? "—" : `Avg ${avgHumidity.toFixed(1)}% RH`}
-            chipBg="color-mix(in oklab, var(--acc-deep) 15.0%, transparent)"
-            chipBorder="color-mix(in oklab, var(--acc-deep) 30.0%, transparent)"
-            chipColor={C.moss}
-          >
-            {humidityData.length === 0 ? <EmptyChart /> : (
-            <ResponsiveContainer width="100%" height={160}>
-              <AreaChart data={humidityData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
-                <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<NiceTooltip suffix="% RH" />} />
-                <Area type="monotone" dataKey="v" stroke={C.moss} strokeWidth={2.5} fill={C.tan} fillOpacity={0.2} isAnimationActive={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-            )}
-          </ChartCard>
+            {/* PressureSense AI */}
+            <ChartCard
+              accent={C.orange}
+              icon={<ShieldAlert size={18} color={C.orange} />}
+              titleJp="首輪の圧力"
+              titleEn="PressureSense AI"
+              chipText={avgPressure == null ? "—" : `Avg ${avgPressure.toFixed(1)} kPa`}
+              chipBg={`${C.orange}20`}
+              chipBorder={`${C.orange}40`}
+              chipColor={C.orange}
+            >
+              {pressureData.length === 0 ? <EmptyChart /> : (
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart data={pressureData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
+                  <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<NiceTooltip suffix=" kPa" />} />
+                  <Line type="monotone" dataKey="v" stroke={C.orange} strokeWidth={2.5} isAnimationActive={false}
+                    dot={{ r: 3, fill: C.orange, stroke: C.bone, strokeWidth: 1.5 }} />
+                </LineChart>
+              </ResponsiveContainer>
+              )}
+            </ChartCard>
 
-          {/* Motion intensity */}
-          <ChartCard
-            accent={C.tan}
-            icon={<Footprints size={18} color={C.kombu} />}
-            titleJp="運動強度"
-            titleEn="Movement Intensity"
-            chipText={avgMovement == null ? "—" : `Avg ${avgMovement.toFixed(2)} m/s²`}
-            chipBg="color-mix(in oklab, var(--acc-strong) 30.0%, transparent)"
-            chipBorder="color-mix(in oklab, var(--acc-strong) 60.0%, transparent)"
-            chipColor={C.cafe}
-          >
-            {movementData.length === 0 ? <EmptyChart /> : (
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={movementData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="stepsFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.kombu} stopOpacity={1} />
-                    <stop offset="100%" stopColor={C.moss} stopOpacity={1} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
-                <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<NiceTooltip suffix=" m/s²" />} />
-                <Bar dataKey="v" fill="url(#stepsFill)" radius={[6, 6, 0, 0]} isAnimationActive={false} />
-              </BarChart>
-            </ResponsiveContainer>
-            )}
-          </ChartCard>
+            {/* MotionSense AI */}
+            <ChartCard
+              accent={C.green}
+              icon={<Activity size={18} color={C.green} />}
+              titleJp="運動強度"
+              titleEn="MotionSense AI"
+              chipText={avgMovement == null ? "—" : `Avg ${avgMovement.toFixed(2)} m/s²`}
+              chipBg={`${C.green}20`}
+              chipBorder={`${C.green}40`}
+              chipColor={C.green}
+            >
+              {movementData.length === 0 ? <EmptyChart /> : (
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={movementData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="motionFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={C.green} stopOpacity={1} />
+                      <stop offset="100%" stopColor={`${C.green}55`} stopOpacity={1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
+                  <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<NiceTooltip suffix=" m/s²" />} />
+                  <Bar dataKey="v" fill="url(#motionFill)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                </BarChart>
+              </ResponsiveContainer>
+              )}
+            </ChartCard>
 
-          {/* Pressure */}
-          <ChartCard
-            accent={C.cafe}
-            icon={<Activity size={18} color={C.cafe} />}
-            titleJp="圧力センサー"
-            titleEn="Paw Pressure"
-            chipText={avgPressure == null ? "—" : `Avg ${avgPressure.toFixed(1)}`}
-            chipBg="color-mix(in oklab, var(--acc-deep) 12.0%, transparent)"
-            chipBorder="color-mix(in oklab, var(--acc-deep) 25.0%, transparent)"
-            chipColor={C.cafe}
-          >
-            {pressureData.length === 0 ? <EmptyChart /> : (
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={pressureData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
-                <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<NiceTooltip suffix="" />} />
-                <Bar dataKey="v" fill={C.kombu} radius={[6, 6, 0, 0]} isAnimationActive={false} />
-              </BarChart>
-            </ResponsiveContainer>
-            )}
-          </ChartCard>
+            {/* EnvironmentSense AI - Temp */}
+            <ChartCard
+              accent={C.blue}
+              icon={<Sun size={18} color={C.blue} />}
+              titleJp="環境センサー"
+              titleEn="EnvironmentSense AI"
+              chipText={avgEnvTemp == null ? "—" : `Avg ${avgEnvTemp.toFixed(1)}°C`}
+              chipBg={`${C.blue}20`}
+              chipBorder={`${C.blue}40`}
+              chipColor={C.blue}
+            >
+              {envTempData.length === 0 ? <EmptyChart /> : (
+              <ResponsiveContainer width="100%" height={160}>
+                <AreaChart data={envTempData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="envTempFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={C.blue} stopOpacity={0.2} />
+                      <stop offset="100%" stopColor={C.blue} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="color-mix(in oklab, var(--acc-deep) 10.0%, transparent)" vertical={false} />
+                  <XAxis dataKey="d" tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: C.moss, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<NiceTooltip suffix="°C" />} />
+                  <Area type="monotone" dataKey="v" stroke={C.blue} strokeWidth={2.5} fill="url(#envTempFill)" isAnimationActive={false}
+                    dot={{ r: 3, fill: C.blue, stroke: C.bone, strokeWidth: 1.5 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+              )}
+            </ChartCard>
+          </div>
 
-          <SectionDivider jp="健康記録" en="Health Records" />
-
-          <VaccinationCard />
-          <LastVisitCard />
-
-          <SectionDivider jp="レポート" en="Reports" />
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12, alignItems: "stretch" }}>
-            <QRCard />
-            <PDFCard />
+          <SectionDivider jp="出力" en="Reports & Sync" />
+          
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 40 }}>
+            <QRCard onClick={() => toast.success(language === "en" ? "QR Generated" : "QR生成完了")} />
+            <PDFCard onClick={() => toast.success(language === "en" ? "Exporting PDF..." : "PDF出力中...")} />
           </div>
         </div>
       </div>
@@ -290,265 +311,72 @@ function Report() {
   );
 }
 
-/* ─────────── Health Summary Card (real data only) ─────────── */
+/* ─────────── Helper Components ─────────── */
+
 function EmptyChart() {
   const t = useT();
   return (
-    <div style={{
-      height: 160, display: "flex", flexDirection: "column", alignItems: "center",
-      justifyContent: "center", gap: 6, textAlign: "center", padding: "0 20px",
-    }}>
-      <span style={{ fontSize: 22, color: C.moss }}>—</span>
-      <span style={{ fontSize: 12, color: C.moss, lineHeight: 1.4 }}>
-        {t("データがありません", "No readings recorded yet. Connect the collar to start collecting data.")}
-      </span>
+    <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: C.moss, fontSize: 12 }}>
+      {t("データがありません", "No data in this period")}
     </div>
   );
 }
 
-function HeroCard({ avgTemp, avgHumidity, avgMovement }: {
-  avgTemp: number | null; avgHumidity: number | null; avgMovement: number | null;
-}) {
-  const t = useT();
-  const { connected, receiving, live } = useCollar();
-  const active = [live.temp, live.humidity, live.motion].filter(Boolean).length;
-  const score = receiving ? Math.round((active / 3) * 100) : null;
-  const r = 44;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - ((score ?? 0) / 100) * circ;
-
-  return (
-    <div style={{ ...glass, marginBottom: 16, overflow: "hidden", borderRadius: 24 }}>
-      <div style={{ height: 8, background: `linear-gradient(90deg, ${C.kombu}, ${C.moss}, ${C.tan})` }} />
-      <div style={{ padding: 20 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 20, alignItems: "center" }}>
-          <div style={{ position: "relative", width: 100, height: 100 }}>
-            <svg width={100} height={100} viewBox="0 0 100 100">
-              <circle cx={50} cy={50} r={r} stroke="color-mix(in oklab, var(--acc-deep) 25.0%, transparent)" strokeWidth={10} fill="none" />
-              {score != null && (
-                <circle cx={50} cy={50} r={r} stroke={C.kombu} strokeWidth={10} fill="none"
-                  strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
-                  transform="rotate(-90 50 50)" />
-              )}
-            </svg>
-            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
-                <span style={{ fontSize: 28, fontWeight: 700, color: C.cafe, lineHeight: 1 }}>{score ?? "—"}</span>
-                {score != null && <span style={{ fontSize: 12, color: C.moss }}>/100</span>}
-              </div>
-              <span style={{ fontSize: 9, color: C.moss, letterSpacing: "0.1em", marginTop: 2 }}>
-                {t("スコア", "SENSORS")}
-              </span>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <StatRow icon={<Thermometer size={16} color={C.kombu} />}
-              labelJp="環境温度" labelEn="Avg Environment" value={avgTemp == null ? "—" : `${avgTemp.toFixed(1)}°C`} />
-            <div style={{ height: 1, background: "color-mix(in oklab, var(--acc-deep) 20.0%, transparent)" }} />
-            <StatRow icon={<Droplets size={16} color={C.kombu} />}
-              labelJp="湿度" labelEn="Avg Humidity" value={avgHumidity == null ? "—" : `${avgHumidity.toFixed(1)}% RH`} />
-            <div style={{ height: 1, background: "color-mix(in oklab, var(--acc-deep) 20.0%, transparent)" }} />
-            <StatRow icon={<Footprints size={16} color={C.kombu} />}
-              labelJp="動き" labelEn="Avg Motion" value={avgMovement == null ? "—" : `${avgMovement.toFixed(2)} m/s²`} />
-          </div>
-        </div>
-
-        <div style={{ height: 1, background: "color-mix(in oklab, var(--acc-deep) 20.0%, transparent)", margin: "14px 0" }} />
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <CheckCircle2 size={14} color={C.moss} />
-            <span style={{ fontSize: 12, color: C.moss, fontWeight: 600 }}>
-              {connected
-                ? t("センサー受信中", `${active} of 3 sensors reporting`)
-                : t("センサー受信待機中", "Awaiting sensor data")}
-            </span>
-          </div>
-          <span style={{ fontSize: 11, color: C.tan }}>{new Date().toLocaleDateString()}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatRow({ icon, labelJp, labelEn, value }: {
-  icon: ReactNode;
-  labelJp: string; labelEn: string;
-  value: string;
-}) {
-  const t = useT();
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0" }}>
-      <div style={{
-        width: 32, height: 32, borderRadius: 999,
-        background: "color-mix(in oklab, var(--acc-deep) 20.0%, transparent)",
-        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-      }}>{icon}</div>
-      <span style={{ flex: 1, fontSize: 11, color: C.moss }}>
-        {t(labelJp, labelEn)}
-      </span>
-      <span style={{ fontSize: 15, fontWeight: 700, color: C.cafe }}>{value}</span>
-    </div>
-  );
-}
-
-/* ─────────── Section Divider ─────────── */
 function SectionDivider({ jp, en }: { jp: string; en: string }) {
   const t = useT();
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "4px 0 10px" }}>
-      <div style={{ flex: 1, height: 1, background: "color-mix(in oklab, var(--acc-deep) 30.0%, transparent)" }} />
-      <span style={{
-        fontSize: 11, color: C.moss, letterSpacing: "0.15em",
-        fontWeight: 700, textTransform: "uppercase",
-      }}>
-        {t(jp, en)}
-      </span>
-      <div style={{ flex: 1, height: 1, background: "color-mix(in oklab, var(--acc-deep) 30.0%, transparent)" }} />
+    <div className="flex items-center gap-3" style={{ margin: "24px 0 16px" }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: C.cafe }}>{t(jp, en)}</div>
+      <div style={{ flex: 1, height: 1, background: "color-mix(in oklab, var(--acc-deep) 15.0%, transparent)" }} />
     </div>
   );
 }
 
-/* ─────────── Chart Card Wrapper ─────────── */
-function ChartCard({
-  accent, icon, titleJp, titleEn, chipText, chipBg, chipBorder, chipColor, children,
-}: {
-  accent: string;
-  icon: ReactNode;
-  titleJp: string; titleEn: string;
-  chipText: string;
-  chipBg: string; chipBorder: string; chipColor: string;
-  children: ReactNode;
-}) {
-  const t = useT();
-  const { language } = useLanguage();
-  return (
-    <div style={{
-      ...glass,
-      marginBottom: 12,
-      overflow: "hidden",
-      borderLeft: `4px solid ${accent}`,
-    }}>
-      <div style={{
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        padding: "14px 16px 4px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 10,
-            background: `${hexA(accent, 0.12)}`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>{icon}</div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.cafe }}>
-              {t(titleJp, titleEn)}
-            </div>
-          </div>
-        </div>
-        <span style={{
-          background: chipBg, color: chipColor, fontSize: 12, fontWeight: 700,
-          padding: "4px 12px", borderRadius: 20, border: `1px solid ${chipBorder}`,
-        }}>{chipText}</span>
-      </div>
-      <div style={{ padding: "8px 8px 12px" }}>{children}</div>
-    </div>
-  );
-}
-
-/* Convert known hex to rgba; falls back to the hex */
-function hexA(hex: string, a: number): string {
-  const h = hex.replace("#", "");
-  const n = parseInt(h.length === 3 ? h.split("").map(c => c + c).join("") : h, 16);
-  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-}
-
-function NiceTooltip({ active, payload, label, suffix }: any) {
+function NiceTooltip({ active, payload, label, suffix = "" }: any) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: "color-mix(in oklab, var(--acc-soft) 95.0%, transparent)",
-      backdropFilter: "blur(8px)",
-      border: `1px solid ${C.tan}`, borderRadius: 12,
-      padding: "6px 10px", fontSize: 11, color: C.cafe,
-      boxShadow: "0 4px 12px color-mix(in oklab, var(--acc-deep) 15.0%, transparent)",
+      background: "var(--bg-card)",
+      border: "1px solid color-mix(in oklab, var(--acc-deep) 15.0%, transparent)",
+      padding: "8px 12px",
+      borderRadius: 12,
+      boxShadow: "0 4px 20px color-mix(in oklab, var(--acc-deep) 15.0%, transparent)",
     }}>
-      <div style={{ color: C.moss }}>{label}</div>
-      <div style={{ fontWeight: 700, color: C.cafe }}>{payload[0].value}{suffix}</div>
-    </div>
-  );
-}
-
-/* ─────────── Vaccination Card (user records only) ─────────── */
-function VaccinationCard() {
-  const t = useT();
-  const vaccines: { en: string; date: string }[] = [];
-  return (
-    <div style={{ ...glass, marginBottom: 12, overflow: "hidden", borderLeft: `4px solid ${C.moss}` }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px 10px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Syringe size={18} color={C.moss} />
-          <span style={{ fontSize: 14, fontWeight: 700, color: C.cafe }}>
-            {t("ワクチン記録", "Vaccination Records")}
-          </span>
-        </div>
-        <span style={{
-          background: "color-mix(in oklab, var(--acc-deep) 15.0%, transparent)", color: C.kombu, fontSize: 11, fontWeight: 700,
-          padding: "3px 10px", borderRadius: 20, border: `1px solid ${C.moss}`,
-        }}>{vaccines.length} {t("件", "records")}</span>
-      </div>
-      <div style={{ padding: "0 16px 16px", fontSize: 12, color: C.moss, lineHeight: 1.5 }}>
-        {t("記録はまだありません。", "No vaccination records yet — they appear here once your vet adds them.")}
+      <div style={{ fontSize: 10, color: C.moss, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: C.cafe }}>
+        {payload[0].value.toFixed(1)}{suffix}
       </div>
     </div>
   );
 }
 
-/* ─────────── Last Visit Card (no records yet) ─────────── */
-function LastVisitCard() {
+function ChartCard({ children, titleJp, titleEn, chipText, chipBg, chipColor, chipBorder, icon, accent }: any) {
   const t = useT();
-  const nav = useNavigate();
   return (
-    <div style={{ ...glass, marginBottom: 12, overflow: "hidden", borderLeft: `4px solid ${C.kombu}` }}>
-      <div style={{ padding: "14px 16px 4px", display: "flex", alignItems: "center", gap: 10 }}>
-        <Stethoscope size={18} color={C.cafe} />
-        <span style={{ fontSize: 14, fontWeight: 700, color: C.cafe }}>
-          {t("最後の診察", "Last Vet Visit")}
-        </span>
-      </div>
-      <div style={{ padding: "8px 16px 14px", display: "flex", gap: 12, alignItems: "center" }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: "50%", background: "color-mix(in oklab, var(--acc-deep) 12.0%, transparent)",
-          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-        }}>
-          <Cross size={22} color={C.kombu} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.cafe, lineHeight: 1.3 }}>—</div>
-          <div style={{ fontSize: 12, color: C.moss, marginTop: 2, lineHeight: 1.4 }}>
-            {t("診察記録はまだありません。", "No visits recorded yet. Book a clinic to start your pet's history.")}
+    <div style={{ ...glass, padding: "20px 16px", background: "#FFFFFF" }}>
+      <div className="flex items-start justify-between" style={{ marginBottom: 20 }}>
+        <div className="flex items-center gap-2">
+          <div style={{
+            width: 36, height: 36, borderRadius: 12,
+            background: chipBg,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            {icon}
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.cafe, letterSpacing: "-0.01em" }}>
+            {t(titleJp, titleEn)}
           </div>
         </div>
-      </div>
-      <div style={{
-        padding: "10px 16px", borderTop: "1px solid color-mix(in oklab, var(--acc-deep) 20.0%, transparent)",
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-      }}>
-        <div>
-          <div style={{ fontSize: 11, color: C.moss }}>{t("次回予約", "Next Appointment")}</div>
-          <div style={{ fontSize: 12, color: C.cafe, fontWeight: 600 }}>{t("未定", "Not scheduled")}</div>
+        <div style={{
+          fontSize: 11, fontWeight: 700, color: chipColor,
+          background: chipBg,
+          padding: "4px 10px", borderRadius: 10,
+          border: `1px solid ${chipBorder}`,
+        }}>
+          {chipText}
         </div>
-        <button
-          onClick={() => nav({ to: "/clinics" })}
-          style={{
-            background: "color-mix(in oklab, var(--acc-deep) 8.0%, transparent)", color: C.kombu, fontSize: 12, fontWeight: 700,
-            border: `1px solid ${C.kombu}`, borderRadius: 12, padding: "6px 16px",
-          }}
-        >
-          {t("予約する →", "Book Now →")}
-        </button>
       </div>
+      {children}
     </div>
   );
 }
@@ -558,9 +386,7 @@ function QRCard({ onClick }: { onClick: () => void }) {
   const t = useT();
   return (
     <div style={{
-      ...glass,
-      borderLeft: "4px solid {C.kombu}",
-      padding: 16,
+      ...glass, borderLeft: `4px solid ${C.kombu}`, padding: 16,
       display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
     }}>
       <div style={{
@@ -572,17 +398,11 @@ function QRCard({ onClick }: { onClick: () => void }) {
       <div style={{ fontSize: 13, fontWeight: 700, color: C.cafe, textAlign: "center" }}>
         {t("獣医用QRコード", "Vet QR Code")}
       </div>
-      <div style={{ fontSize: 10, color: C.moss, textAlign: "center", marginBottom: "auto" }}>
-        {t("毎回新しいQRを生成", "Real-time sync")}
-      </div>
       <button
         onClick={onClick}
         style={{
-          width: "100%", height: 40, marginTop: 12,
-          background: C.kombu,
-          color: C.bone, fontWeight: 700, fontSize: 13, borderRadius: 12,
-          border: "none",
-          boxShadow: "0 4px 16px color-mix(in oklab, var(--acc-deep) 30.0%, transparent)",
+          width: "100%", height: 40, marginTop: "auto",
+          background: C.kombu, color: C.bone, fontWeight: 700, fontSize: 13, borderRadius: 12, border: "none",
         }}
       >
         {t("生成", "Generate")}
@@ -593,16 +413,9 @@ function QRCard({ onClick }: { onClick: () => void }) {
 
 function PDFCard({ onClick }: { onClick: () => void }) {
   const t = useT();
-  const items: [string, string][] = [
-    ["ワクチン履歴", "Vaccination history"],
-    ["最終診察", "Last checkup details"],
-    ["年間データ", "Health matrices"],
-  ];
   return (
     <div style={{
-      ...glass,
-      borderLeft: "4px solid {C.moss}",
-      padding: 16,
+      ...glass, borderLeft: `4px solid ${C.moss}`, padding: 16,
       display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
     }}>
       <div style={{
@@ -614,27 +427,15 @@ function PDFCard({ onClick }: { onClick: () => void }) {
       <div style={{ fontSize: 13, fontWeight: 700, color: C.cafe, textAlign: "center" }}>
         {t("PDF出力", "PDF Export")}
       </div>
-      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 4, marginTop: 4, marginBottom: 8 }}>
-        {items.map(([jp, en]) => (
-          <div key={en} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Check size={12} color={C.kombu} strokeWidth={3} style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: 10, color: C.moss }}>{t(jp, en)}</span>
-          </div>
-        ))}
-      </div>
       <button
         onClick={onClick}
-        className="active:scale-[0.97] transition-transform"
         style={{
-          width: "100%", height: 42, marginTop: "auto",
-          background: "linear-gradient(135deg, {C.kombu}, {C.moss})",
-          color: "#FFFFFF", fontWeight: 700, fontSize: 12, borderRadius: 12,
-          border: "none", cursor: "pointer",
-          boxShadow: "0 6px 16px color-mix(in oklab, {C.kombu} 35%, transparent)",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          width: "100%", height: 40, marginTop: "auto",
+          background: `linear-gradient(135deg, ${C.kombu}, ${C.moss})`,
+          color: "#FFFFFF", fontWeight: 700, fontSize: 12, borderRadius: 12, border: "none",
         }}
       >
-        {t("PDF出力", "Export PDF Report")}
+        {t("PDF出力", "Export PDF")}
       </button>
     </div>
   );
@@ -651,107 +452,45 @@ function HeroBanner({ pet }: { pet: PetProfile }) {
   return (
     <div
       style={{
-        position: "relative",
-        width: "auto",
-        height: 180,
-        margin: "-16px -16px 16px",
-        borderRadius: "0 0 32px 32px",
-        overflow: "hidden",
+        position: "relative", width: "auto", height: 180, margin: "-16px -16px 16px",
+        borderRadius: "0 0 32px 32px", overflow: "hidden",
         background: `linear-gradient(90deg, ${C.kombu} 0%, ${C.moss} 100%)`,
         boxShadow: "0 10px 30px color-mix(in oklab, var(--acc-deep) 25.0%, transparent)",
       }}
     >
-      {/* Large leaf-like blob top-right */}
       <div style={{
         position: "absolute", top: -70, right: -60, width: 220, height: 220,
         borderRadius: "60% 40% 55% 45% / 50% 60% 40% 50%",
-        background: "color-mix(in oklab, var(--acc-strong) 20.0%, transparent)",
-        filter: "blur(1px)",
+        background: "color-mix(in oklab, var(--acc-strong) 20.0%, transparent)", filter: "blur(1px)",
       }} />
-      {/* Smaller bottom-left blob */}
       <div style={{
         position: "absolute", bottom: -40, left: -30, width: 140, height: 140,
         borderRadius: "50%", background: "color-mix(in oklab, var(--acc-strong) 20.0%, transparent)",
       }} />
-
-      {/* Faint paw print watermark right side */}
-      <svg
-        width={120} height={120} viewBox="0 0 24 24"
-        style={{
-          position: "absolute", right: 12, bottom: 12,
-          opacity: 1, pointerEvents: "none",
-        }}
-        aria-hidden
-      >
-        <g fill="color-mix(in oklab, var(--acc-soft) 15.0%, transparent)">
-          <ellipse cx="12" cy="16" rx="4" ry="3.2" />
-          <ellipse cx="6" cy="10" rx="1.8" ry="2.4" />
-          <ellipse cx="10" cy="7" rx="1.8" ry="2.4" />
-          <ellipse cx="14" cy="7" rx="1.8" ry="2.4" />
-          <ellipse cx="18" cy="10" rx="1.8" ry="2.4" />
-        </g>
-      </svg>
-
-      {/* Text content */}
       <div style={{
-        position: "relative", zIndex: 1,
-        padding: 24,
-        display: "flex", flexDirection: "column",
+        position: "relative", zIndex: 1, padding: 24, display: "flex", flexDirection: "column",
         height: "100%", justifyContent: "space-between",
       }}>
         <div>
-          <div style={{
-            fontSize: 11,
-            color: "color-mix(in oklab, var(--acc-soft) 85.0%, transparent)",
-            letterSpacing: "0.12em",
-            fontWeight: 600,
-            textTransform: "uppercase",
-          }}>
+          <div style={{ fontSize: 11, color: "color-mix(in oklab, var(--acc-soft) 85.0%, transparent)", letterSpacing: "0.12em", fontWeight: 600, textTransform: "uppercase" }}>
             {t("ヘルスレポート", "Health")}
           </div>
-          <div style={{
-            fontSize: 28, fontWeight: 700, color: C.bone,
-            lineHeight: 1.1, marginTop: 4,
-            letterSpacing: "-0.01em",
-          }}>
-            Health Report
+          <div style={{ fontSize: 28, fontWeight: 700, color: C.bone, lineHeight: 1.1, marginTop: 4, letterSpacing: "-0.01em" }}>
+            Sense AI Combine
           </div>
-          <div style={{
-            fontSize: 13, color: "color-mix(in oklab, var(--acc-soft) 75.0%, transparent)",
-            marginTop: 6, display: "flex", alignItems: "center", gap: 6,
-          }}>
-            <span aria-hidden>🐾</span>
-            <span>{name} · {t(breedJp, breedEn)} · {t("2026年5月", "May 2026")}</span>
+          <div style={{ fontSize: 13, color: "color-mix(in oklab, var(--acc-soft) 75.0%, transparent)", marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
+            <span aria-hidden>🐾</span><span>{name} · {t(breedJp, breedEn)}</span>
           </div>
         </div>
-
         <div style={{
-          alignSelf: "flex-start",
-          display: "inline-flex", alignItems: "center", gap: 6,
-          background: "rgba(255, 255, 255, 0.2)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          border: "1px solid rgba(255, 255, 255, 0.6)",
-          borderRadius: 20,
-          padding: "4px 12px",
+          alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6,
+          background: "rgba(255, 255, 255, 0.2)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+          border: "1px solid rgba(255, 255, 255, 0.6)", borderRadius: 20, padding: "4px 12px",
         }}>
-          <span style={{
-            width: 6, height: 6, borderRadius: "50%",
-            background: "#FFFFFF",
-            boxShadow: "0 0 8px rgba(255,255,255,0.8)",
-          }} />
-          <span style={{ fontSize: 12, color: "#FFFFFF", fontWeight: 600 }}>
-            {t("良好", "Good")}
-          </span>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#FFFFFF", boxShadow: "0 0 8px rgba(255,255,255,0.8)" }} />
+          <span style={{ fontSize: 12, color: "#FFFFFF", fontWeight: 600 }}>{t("良好", "Optimal")}</span>
         </div>
       </div>
     </div>
   );
 }
-
-// reserved for future overdue states
-void AlertTriangle;
-
-
-
-

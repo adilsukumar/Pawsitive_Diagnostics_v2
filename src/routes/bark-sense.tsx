@@ -58,10 +58,7 @@ function BarkSensePage() {
       const key = e.key.toLowerCase();
       if (EMOTIONS[key]) {
         setIsRecording(true);
-        setCurrentMood({
-          ...EMOTIONS[key],
-          percentage: Math.floor(Math.random() * (98 - 85 + 1)) + 85
-        });
+        const pct = Math.floor(Math.random() * (98 - 85 + 1)) + 85; const newMood = { ...EMOTIONS[key], percentage: pct }; setCurrentMood(newMood); if (["a", "f", "p"].includes(key)) { addNotification({ Icon: newMood.icon, color: newMood.color, text: "Abnormal vocalization detected: " + newMood.name }); }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -178,5 +175,6 @@ function BarkSensePage() {
     </SensorPage>
   );
 }
+
 
 
