@@ -39,7 +39,7 @@ export const VET_PATIENTS: VetPatient[] = [
     status: "Active Patient",
     conditions: ["Flea allergy dermatitis (2025)"],
     allergies: [], currentMeds: [],
-    vaccinationStatus: "Overdue", lastVisit: "10 Aug 2026", nextFollowUp: "18 Aug 2026", tempC: 38.5,
+    vaccinationStatus: "Overdue", lastVisit: "14 Sep 2026", nextFollowUp: "14 Sep 2026", tempC: 38.5,
   },
   {
     id: "p2", name: "Coco", species: "dog", breed: "Pug", breedKey: "frenchie",
@@ -49,7 +49,7 @@ export const VET_PATIENTS: VetPatient[] = [
     status: "Active Patient",
     conditions: ["BOAS grade II", "Corneal ulcer (2024)"],
     allergies: ["Penicillin"], currentMeds: ["Prednisolone 5 mg"],
-    vaccinationStatus: "Up to date", lastVisit: "12 Aug 2026", nextFollowUp: "26 Aug 2026", tempC: 38.4,
+    vaccinationStatus: "Up to date", lastVisit: "13 Sep 2026", nextFollowUp: "14 Sep 2026", tempC: 38.4,
   },
   {
     id: "p3", name: "Simba", species: "dog", breed: "Golden Retriever", breedKey: "golden",
@@ -59,7 +59,7 @@ export const VET_PATIENTS: VetPatient[] = [
     status: "Active Patient",
     conditions: ["Early hip dysplasia", "Hypothyroidism"],
     allergies: [], currentMeds: ["Levothyroxine 0.4 mg"],
-    vaccinationStatus: "Up to date", lastVisit: "05 Aug 2026", nextFollowUp: "02 Sep 2026", tempC: 38.4,
+    vaccinationStatus: "Up to date", lastVisit: "14 Sep 2026", nextFollowUp: "14 Sep 2026", tempC: 38.4,
   },
   {
     id: "p4", name: "Sheru", species: "dog", breed: "German Shepherd", breedKey: "shiba",
@@ -68,7 +68,7 @@ export const VET_PATIENTS: VetPatient[] = [
     patientCode: "PT-10302", microchip: "982000123450302",
     status: "Active Patient",
     conditions: [], allergies: [], currentMeds: [],
-    vaccinationStatus: "Up to date", lastVisit: "22 Jul 2026", nextFollowUp: "—", tempC: 38.6,
+    vaccinationStatus: "Up to date", lastVisit: "13 Sep 2026", nextFollowUp: "—", tempC: 38.6,
   },
   {
     id: "p5", name: "Milo", species: "dog", breed: "Chihuahua", breedKey: "chihuahua",
@@ -78,7 +78,7 @@ export const VET_PATIENTS: VetPatient[] = [
     status: "Active Patient",
     conditions: ["Patellar luxation grade I"],
     allergies: [], currentMeds: ["Carprofen 6.25 mg"],
-    vaccinationStatus: "Up to date", lastVisit: "15 Aug 2026", nextFollowUp: "26 Aug 2026", tempC: 38.7,
+    vaccinationStatus: "Up to date", lastVisit: "14 Sep 2026", nextFollowUp: "13 Sep 2026", tempC: 38.7,
   },
 ];
 
@@ -411,12 +411,12 @@ export const APPOINTMENTS: Appointment[] = [
   { id: "a4", patientId: "p5", time: "10:30", reason: "Post-surgery follow-up", type: "Clinic", status: "scheduled", followUp: true },
   { id: "a5", patientId: "p4", time: "11:00", reason: "Annual health check", type: "Clinic", status: "checked-in" },
   { id: "a6", patientId: "p6", time: "11:30", reason: "Vaccination (FVRCP)", type: "Clinic", status: "scheduled" },
-  { id: "a7", patientId: "p2", time: "12:00", reason: "Respiratory symptoms recheck", type: "Video", status: "waiting", followUp: true },
-  { id: "a8", patientId: "p1", time: "13:30", reason: "Scratching & ear odour", type: "Video", status: "in-consultation" },
-  { id: "a9", patientId: "p3", time: "14:00", reason: "Hypothyroidism review", type: "Video", status: "scheduled", followUp: true },
-  { id: "a10", patientId: "p5", time: "15:00", reason: "Suture removal", type: "Clinic", status: "scheduled", followUp: true },
-  { id: "a11", patientId: "p4", time: "16:00", reason: "GDV risk consult", type: "Video", status: "scheduled" },
-  { id: "a12", patientId: "p6", time: "17:30", reason: "Dental check", type: "Clinic", status: "scheduled", followUp: true },
+  { id: "a7", patientId: "p2", time: "10:20", reason: "Respiratory symptoms recheck", type: "Video", status: "waiting", followUp: true },
+  { id: "a8", patientId: "p1", time: "10:35", reason: "Scratching & ear odour", type: "Video", status: "in-consultation" },
+  { id: "a9", patientId: "p3", time: "10:40", reason: "Hypothyroidism review", type: "Video", status: "scheduled", followUp: true },
+  { id: "a10", patientId: "p5", time: "10:50", reason: "Suture removal", type: "Clinic", status: "scheduled", followUp: true },
+  { id: "a11", patientId: "p4", time: "11:00", reason: "GDV risk consult", type: "Video", status: "scheduled" },
+  { id: "a12", patientId: "p6", time: "11:15", reason: "Dental check", type: "Clinic", status: "scheduled", followUp: true },
 ];
 
 export const APPT_STATUS_META: Record<ApptStatus, { label: string; tone: "green" | "amber" | "blue" | "grey" }> = {
@@ -439,11 +439,11 @@ export type FollowUp = {
 };
 
 export const FOLLOW_UPS: FollowUp[] = [
-  { id: "f1", patientId: "p5", date: "26 Aug 2026", reason: "Post-surgery recheck", status: "Scheduled", remindOwner: true },
-  { id: "f2", patientId: "p2", date: "26 Aug 2026", reason: "Recheck respiratory symptoms", status: "Scheduled", remindOwner: true },
-  { id: "f3", patientId: "p3", date: "02 Sep 2026", reason: "Thyroid panel review", status: "Scheduled", remindOwner: false },
-  { id: "f4", patientId: "p1", date: "18 Aug 2026", reason: "GI upset recheck", status: "Overdue", remindOwner: true },
-  { id: "f5", patientId: "p6", date: "29 Aug 2026", reason: "Dental follow-up", status: "Scheduled", remindOwner: false },
+  { id: "f1", patientId: "p5", date: "13 Sep 2026", reason: "Post-surgery recheck", status: "Scheduled", remindOwner: true },
+  { id: "f2", patientId: "p2", date: "14 Sep 2026", reason: "Recheck respiratory symptoms", status: "Scheduled", remindOwner: true },
+  { id: "f3", patientId: "p3", date: "14 Sep 2026", reason: "Thyroid panel review", status: "Scheduled", remindOwner: false },
+  { id: "f4", patientId: "p1", date: "14 Sep 2026", reason: "GI upset recheck", status: "Overdue", remindOwner: true },
+  { id: "f5", patientId: "p6", date: "14 Sep 2026", reason: "Dental follow-up", status: "Scheduled", remindOwner: false },
 ];
 
 export type ClinicalAlert = { level: "red" | "amber"; text: string; patientId?: string };
@@ -478,56 +478,56 @@ const VET_NAME = "Dr. Sharma";
 export const PATIENT_RECORDS: Record<string, PatientRecord> = {
   p1: {
     visits: [
-      { date: "10 Aug 2026", reason: "Vomiting / lethargy", vet: VET_NAME, summary: "Acute gastroenteritis. Prescribed bland diet + antiemetic. Hydration adequate." },
-      { date: "02 May 2026", reason: "Scratching & ear odour", vet: VET_NAME, summary: "Flea allergy dermatitis on flank. Started ectoparasite control." },
-      { date: "11 Jan 2026", reason: "Annual wellness exam", vet: VET_NAME, summary: "Healthy. Weight stable at 24 kg. Dental score 1/4." },
+      { date: "13 Sep 2026", reason: "Vomiting / lethargy", vet: VET_NAME, summary: "Acute gastroenteritis. Prescribed bland diet + antiemetic. Hydration adequate." },
+      { date: "13 Sep 2026", reason: "Scratching & ear odour", vet: VET_NAME, summary: "Flea allergy dermatitis on flank. Started ectoparasite control." },
+      { date: "13 Sep 2026", reason: "Annual wellness exam", vet: VET_NAME, summary: "Healthy. Weight stable at 24 kg. Dental score 1/4." },
     ],
     diagnoses: [
-      { date: "10 Aug 2026", name: "Acute gastroenteritis", status: "Active", notes: "Dietary indiscretion suspected." },
-      { date: "02 May 2026", name: "Flea allergy dermatitis", status: "Resolved" },
+      { date: "13 Sep 2026", name: "Acute gastroenteritis", status: "Active", notes: "Dietary indiscretion suspected." },
+      { date: "13 Sep 2026", name: "Flea allergy dermatitis", status: "Resolved" },
     ],
     medications: [
-      { name: "Maropitant", dose: "2 mg/kg", route: "Oral", frequency: "Once daily", duration: "5 days", prescribed: "10 Aug 2026", status: "Completed" },
+      { name: "Maropitant", dose: "2 mg/kg", route: "Oral", frequency: "Once daily", duration: "5 days", prescribed: "14 Sep 2026", status: "Completed" },
     ],
     vaccinations: [
-      { name: "Rabies", date: "05 Aug 2025", nextDue: "05 Aug 2026", status: "Overdue" },
-      { name: "DHPP", date: "05 Aug 2025", nextDue: "05 Aug 2027", status: "Administered" },
+      { name: "Rabies", date: "13 Sep 2026", nextDue: "14 Sep 2026", status: "Overdue" },
+      { name: "DHPP", date: "13 Sep 2026", nextDue: "14 Sep 2026", status: "Administered" },
     ],
     labs: [
       {
-        id: "l1", name: "CBC", date: "10 Aug 2026", status: "available",
+        id: "l1", name: "CBC", date: "13 Sep 2026", status: "available",
         values: [
           { name: "Hemoglobin", value: "14.2", unit: "g/dL", ref: "12.0–18.0", flag: "normal" },
           { name: "WBC", value: "11.2", unit: "×10⁹/L", ref: "5.5–16.9", flag: "normal" },
           { name: "Platelets", value: "248", unit: "×10⁹/L", ref: "175–500", flag: "normal" },
         ],
       },
-      { id: "l2", name: "Urinalysis", date: "10 Aug 2026", status: "pending", values: [] },
+      { id: "l2", name: "Urinalysis", date: "13 Sep 2026", status: "pending", values: [] },
     ],
     documents: [
-      { name: "Vaccination certificate 2025", type: "PDF", date: "05 Aug 2025" },
+      { name: "Vaccination certificate 2025", type: "PDF", date: "14 Sep 2026" },
     ],
   },
   p2: {
     visits: [
-      { date: "12 Aug 2026", reason: "Annual vaccination + wellness", vet: VET_NAME, summary: "Rabies & DHPP administered. Mild stertor consistent with BOAS grade II. Prednisolone continued for airway inflammation." },
-      { date: "28 Jun 2026", reason: "Eye recheck", vet: VET_NAME, summary: "Corneal ulcer fully healed. Fluorescein stain negative." },
-      { date: "14 Mar 2026", reason: "BOAS assessment", vet: VET_NAME, summary: "Grade II BOAS. Advised weight control; surgical consult optional." },
+      { date: "14 Sep 2026", reason: "Annual vaccination + wellness", vet: VET_NAME, summary: "Rabies & DHPP administered. Mild stertor consistent with BOAS grade II. Prednisolone continued for airway inflammation." },
+      { date: "13 Sep 2026", reason: "Eye recheck", vet: VET_NAME, summary: "Corneal ulcer fully healed. Fluorescein stain negative." },
+      { date: "14 Sep 2026", reason: "BOAS assessment", vet: VET_NAME, summary: "Grade II BOAS. Advised weight control; surgical consult optional." },
     ],
     diagnoses: [
-      { date: "14 Mar 2026", name: "BOAS grade II", status: "Active", notes: "Brachycephalic obstructive airway syndrome." },
-      { date: "09 Oct 2024", name: "Corneal ulcer (left eye)", status: "Resolved" },
+      { date: "14 Sep 2026", name: "BOAS grade II", status: "Active", notes: "Brachycephalic obstructive airway syndrome." },
+      { date: "14 Sep 2026", name: "Corneal ulcer (left eye)", status: "Resolved" },
     ],
     medications: [
-      { name: "Prednisolone", dose: "5 mg", route: "Oral", frequency: "Once daily", duration: "14 days", prescribed: "12 Aug 2026", status: "Active" },
+      { name: "Prednisolone", dose: "5 mg", route: "Oral", frequency: "Once daily", duration: "14 days", prescribed: "13 Sep 2026", status: "Active" },
     ],
     vaccinations: [
-      { name: "Rabies", date: "12 Aug 2026", nextDue: "12 Aug 2027", status: "Administered" },
-      { name: "DHPP", date: "12 Aug 2026", nextDue: "12 Aug 2027", status: "Administered" },
+      { name: "Rabies", date: "14 Sep 2026", nextDue: "13 Sep 2026", status: "Administered" },
+      { name: "DHPP", date: "14 Sep 2026", nextDue: "14 Sep 2026", status: "Administered" },
     ],
     labs: [
       {
-        id: "l3", name: "CBC", date: "12 Aug 2026", status: "available",
+        id: "l3", name: "CBC", date: "14 Sep 2026", status: "available",
         values: [
           { name: "Hemoglobin", value: "12.1", unit: "g/dL", ref: "12.0–18.0", flag: "normal" },
           { name: "WBC", value: "18.4", unit: "×10⁹/L", ref: "5.5–16.9", flag: "high" },
@@ -535,16 +535,16 @@ export const PATIENT_RECORDS: Record<string, PatientRecord> = {
         ],
       },
       {
-        id: "l4", name: "Blood Chemistry", date: "12 Aug 2026", status: "available",
+        id: "l4", name: "Blood Chemistry", date: "13 Sep 2026", status: "available",
         values: [
           { name: "ALT", value: "42", unit: "U/L", ref: "10–125", flag: "normal" },
           { name: "Creatinine", value: "0.9", unit: "mg/dL", ref: "0.5–1.8", flag: "normal" },
           { name: "Glucose", value: "108", unit: "mg/dL", ref: "74–143", flag: "normal" },
         ],
       },
-      { id: "l5", name: "Urinalysis", date: "12 Aug 2026", status: "pending", values: [] },
+      { id: "l5", name: "Urinalysis", date: "14 Sep 2026", status: "pending", values: [] },
       {
-        id: "l6", name: "Thoracic Imaging", date: "14 Mar 2026", status: "available",
+        id: "l6", name: "Thoracic Imaging", date: "14 Sep 2026", status: "available",
         values: [
           { name: "Tracheal diameter", value: "Narrowed", unit: "", ref: "", flag: "high" },
           { name: "Cardiac silhouette", value: "Normal", unit: "", ref: "", flag: "normal" },
@@ -552,38 +552,38 @@ export const PATIENT_RECORDS: Record<string, PatientRecord> = {
       },
     ],
     documents: [
-      { name: "Vaccination certificate 2026", type: "PDF", date: "12 Aug 2026" },
-      { name: "Thoracic X-ray report", type: "PDF", date: "14 Mar 2026" },
-      { name: "Left ear — SkinSense photo", type: "Image", date: "15 Aug 2026" },
+      { name: "Vaccination certificate 2026", type: "PDF", date: "13 Sep 2026" },
+      { name: "Thoracic X-ray report", type: "PDF", date: "13 Sep 2026" },
+      { name: "Left ear — SkinSense photo", type: "Image", date: "13 Sep 2026" },
     ],
   },
   p3: {
     visits: [
-      { date: "05 Aug 2026", reason: "Skin condition", vet: VET_NAME, summary: "Bilateral flank alopecia, non-pruritic — consistent with hypothyroidism. Continue levothyroxine, recheck TT4 in 4 weeks." },
-      { date: "18 Jun 2026", reason: "Limping — hind left", vet: VET_NAME, summary: "Mild hip laxity. Weight management + joint supplement advised." },
-      { date: "02 Feb 2026", reason: "Annual wellness exam", vet: VET_NAME, summary: "TT4 low-normal at the time; started monitoring." },
+      { date: "14 Sep 2026", reason: "Skin condition", vet: VET_NAME, summary: "Bilateral flank alopecia, non-pruritic — consistent with hypothyroidism. Continue levothyroxine, recheck TT4 in 4 weeks." },
+      { date: "13 Sep 2026", reason: "Limping — hind left", vet: VET_NAME, summary: "Mild hip laxity. Weight management + joint supplement advised." },
+      { date: "14 Sep 2026", reason: "Annual wellness exam", vet: VET_NAME, summary: "TT4 low-normal at the time; started monitoring." },
     ],
     diagnoses: [
-      { date: "05 Aug 2026", name: "Hypothyroidism", status: "Active", notes: "On levothyroxine 0.4 mg BID." },
-      { date: "18 Jun 2026", name: "Hip dysplasia (early)", status: "Active" },
+      { date: "13 Sep 2026", name: "Hypothyroidism", status: "Active", notes: "On levothyroxine 0.4 mg BID." },
+      { date: "13 Sep 2026", name: "Hip dysplasia (early)", status: "Active" },
     ],
     medications: [
-      { name: "Levothyroxine", dose: "0.4 mg", route: "Oral", frequency: "Twice daily", duration: "30 days", prescribed: "05 Aug 2026", status: "Active" },
+      { name: "Levothyroxine", dose: "0.4 mg", route: "Oral", frequency: "Twice daily", duration: "30 days", prescribed: "14 Sep 2026", status: "Active" },
     ],
     vaccinations: [
-      { name: "Rabies", date: "02 Feb 2026", nextDue: "02 Feb 2027", status: "Administered" },
-      { name: "DHPP", date: "02 Feb 2026", nextDue: "02 Feb 2027", status: "Administered" },
+      { name: "Rabies", date: "14 Sep 2026", nextDue: "13 Sep 2026", status: "Administered" },
+      { name: "DHPP", date: "13 Sep 2026", nextDue: "14 Sep 2026", status: "Administered" },
     ],
     labs: [
       {
-        id: "l7", name: "Thyroid Panel", date: "05 Aug 2026", status: "available",
+        id: "l7", name: "Thyroid Panel", date: "14 Sep 2026", status: "available",
         values: [
           { name: "TT4", value: "1.1", unit: "µg/dL", ref: "1.5–4.5", flag: "low" },
           { name: "TSH", value: "0.62", unit: "ng/mL", ref: "0.05–0.50", flag: "high" },
         ],
       },
       {
-        id: "l8", name: "CBC", date: "05 Aug 2026", status: "available",
+        id: "l8", name: "CBC", date: "14 Sep 2026", status: "available",
         values: [
           { name: "Hemoglobin", value: "13.8", unit: "g/dL", ref: "12.0–18.0", flag: "normal" },
           { name: "WBC", value: "9.4", unit: "×10⁹/L", ref: "5.5–16.9", flag: "normal" },
@@ -591,7 +591,7 @@ export const PATIENT_RECORDS: Record<string, PatientRecord> = {
       },
     ],
     documents: [
-      { name: "Thyroid panel report", type: "PDF", date: "05 Aug 2026" },
+      { name: "Thyroid panel report", type: "PDF", date: "13 Sep 2026" },
     ],
   },
 };
@@ -604,7 +604,7 @@ function defaultRecord(p: VetPatient): PatientRecord {
     diagnoses: p.conditions.map((c) => ({ date: p.lastVisit, name: c, status: "Active" as const })),
     medications: p.currentMeds.map((m) => ({ name: m, dose: "As directed", route: "Oral", frequency: "Twice daily", duration: "7 days", prescribed: p.lastVisit, status: "Active" as const })),
     vaccinations: [
-      { name: "Rabies", date: "15 Mar 2026", nextDue: "15 Mar 2027", status: "Administered" as const },
+      { name: "Rabies", date: "14 Sep 2026", nextDue: "13 Sep 2026", status: "Administered" as const },
     ],
     labs: [
       { id: `l-${p.id}-cbc`, name: "CBC", date: p.lastVisit, status: "pending", values: [] },
@@ -660,10 +660,10 @@ export const INVENTORY: InventoryItem[] = [
 export type Invoice = { id: string; owner: string; patientId: string; date: string; amount: number; status: "Paid" | "Pending" | "Overdue" };
 
 export const INVOICES: Invoice[] = [
-  { id: "INV-2081", owner: "Sarah Mehta", patientId: "p2", date: "12 Aug 2026", amount: 1800, status: "Paid" },
-  { id: "INV-2080", owner: "Rahul Shah", patientId: "p1", date: "10 Aug 2026", amount: 2400, status: "Pending" },
-  { id: "INV-2079", owner: "Ananya Rao", patientId: "p3", date: "05 Aug 2026", amount: 3150, status: "Pending" },
-  { id: "INV-2078", owner: "Vikram Singh", patientId: "p4", date: "22 Jul 2026", amount: 1200, status: "Paid" },
-  { id: "INV-2077", owner: "Arjun Patel", patientId: "p5", date: "15 Aug 2026", amount: 4500, status: "Overdue" },
-  { id: "INV-2076", owner: "Nisha Verma", patientId: "p6", date: "01 Aug 2026", amount: 900, status: "Paid" },
+  { id: "INV-2081", owner: "Sarah Mehta", patientId: "p2", date: "14 Sep 2026", amount: 1800, status: "Paid" },
+  { id: "INV-2080", owner: "Rahul Shah", patientId: "p1", date: "14 Sep 2026", amount: 2400, status: "Pending" },
+  { id: "INV-2079", owner: "Ananya Rao", patientId: "p3", date: "14 Sep 2026", amount: 3150, status: "Pending" },
+  { id: "INV-2078", owner: "Vikram Singh", patientId: "p4", date: "14 Sep 2026", amount: 1200, status: "Paid" },
+  { id: "INV-2077", owner: "Arjun Patel", patientId: "p5", date: "13 Sep 2026", amount: 4500, status: "Overdue" },
+  { id: "INV-2076", owner: "Nisha Verma", patientId: "p6", date: "14 Sep 2026", amount: 900, status: "Paid" },
 ];

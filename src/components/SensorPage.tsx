@@ -282,8 +282,8 @@ export function SectionLabel({ jp, en }: { jp: string; en: string }) {
 export function AIInsightCard({
   jp,
   en,
-  timestampJp = "今日 14:32",
-  timestampEn = "Today 14:32",
+  timestampJp = "今日 10:45",
+  timestampEn = "Today 10:45",
 }: {
   jp: string;
   en: string;

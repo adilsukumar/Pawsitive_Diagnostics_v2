@@ -686,7 +686,7 @@ function AIInsight() {
             {t("健康な皮膚 ✓", "Healthy skin ✓")}
           </span>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
-            {t("更新 14:32", "Updated 14:32")}
+            {t("更新 10:45", "Updated 10:45")}
           </span>
         </div>
       </div>
