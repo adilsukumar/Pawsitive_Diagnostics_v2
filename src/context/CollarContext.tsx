@@ -143,11 +143,14 @@ export function CollarProvider({ children }: { children: ReactNode }) {
       if (pressureTrend.current === "idle") return;
       
       if (pressureTrend.current === "up") {
-        currentPressure.current += Math.random() * 0.5 + 0.1;
-        if (currentPressure.current > 130) currentPressure.current = 130;
+        currentPressure.current += Math.random() * 4.0 + 8.0;
+        if (currentPressure.current > 200) currentPressure.current = 200;
       } else {
-        currentPressure.current -= Math.random() * 0.5 + 0.1;
-        if (currentPressure.current < 90) currentPressure.current = 90;
+        currentPressure.current -= Math.random() * 4.0 + 8.0;
+        if (currentPressure.current < 101.3) {
+          currentPressure.current = 101.3;
+          pressureTrend.current = "idle";
+        }
       }
       
       setLive((prev) => ({
@@ -332,6 +335,7 @@ export function useCollar(): CollarCtx {
   if (!v) throw new Error("useCollar must be used inside CollarProvider");
   return v;
 }
+
 
 
 
