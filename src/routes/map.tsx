@@ -89,7 +89,7 @@ function MapScreen() {
       });
 
       if (geo.coords) {
-        const petPos: [number, number] = [geo.coords.lat + 0.0004, geo.coords.lon + 0.0003];
+        const petPos: [number, number] = [geo.coords.lat, geo.coords.lon];
         const youPos: [number, number] = [geo.coords.lat, geo.coords.lon];
         map.setView(petPos, map.getZoom() < 10 ? 17 : map.getZoom());
 
@@ -211,7 +211,7 @@ function MapScreen() {
 
         {/* My location button bottom-right */}
         <button
-          onClick={() => { if (geo.coords) leafletMap.current?.setView([geo.coords.lat + 0.0004, geo.coords.lon + 0.0003], 17); toast.success(t("ペットの位置に移動しました", "Centered on your pet")); }}
+          onClick={() => { if (geo.coords) leafletMap.current?.setView([geo.coords.lat, geo.coords.lon], 20); toast.success(t("ペットの位置に移動しました", "Centered on your pet")); }}
           aria-label="Center on pet"
           className="absolute flex items-center justify-center active:scale-90 transition-transform" style={{ zIndex: 500, bottom: 14, right: 12, width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.9)", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
         >
@@ -220,7 +220,7 @@ function MapScreen() {
 
         {/* Attribution */}
         <div className="absolute" style={{ bottom: 4, left: 8, zIndex: 500, fontSize: 8, color: "var(--text-secondary)", background: "rgba(255,255,255,0.7)", padding: "1px 6px", borderRadius: 6 }}>
-          © Esri · © OpenStreetMap contributors
+          © Google · Map data
         </div>
       </div>
 
@@ -414,4 +414,5 @@ function Toggle({ on, onChange, activeColor = "var(--accent-matcha)" }: { on: bo
     </button>
   );
 }
+
 
