@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { Card, SectionLabel, SensorPage, SP } from "@/components/SensorPage";
 import { Thermometer, AlertTriangle, Activity, CalendarClock } from "lucide-react";
@@ -8,33 +8,19 @@ import { motion } from "framer-motion";
 
 export const Route = createFileRoute("/temp-sense")({ component: TempSensePage });
 
-function generateHistory() {
-  const data = [];
-  let currentTemp = 38.5;
-  
-  // Yesterday's data
-  for (let i = 0; i < 8; i++) {
-    currentTemp += (Math.random() - 0.5) * 0.4;
-    data.push({
-      label: `Yesterday ${8 + i}:00`,
-      temp: Number(currentTemp.toFixed(1))
-    });
-  }
-  // Today's data
-  for (let i = 0; i < 8; i++) {
-    currentTemp += (Math.random() - 0.5) * 0.4;
-    // cap at normal ranges
-    if (currentTemp > 39.0) currentTemp = 39.0;
-    if (currentTemp < 38.0) currentTemp = 38.0;
-    data.push({
-      label: `Today ${8 + i}:00`,
-      temp: Number(currentTemp.toFixed(1))
-    });
-  }
-  return data;
-}
-
-const initialHistory = generateHistory();
+// Range requested: Sep 13th 9:00 AM to Sep 14th 11:30 AM
+const STATIC_MOCK_HISTORY = [
+  { label: "13 Sep, 09:00 AM", temp: 38.4 },
+  { label: "13 Sep, 11:00 AM", temp: 38.5 },
+  { label: "13 Sep, 01:30 PM", temp: 38.6 },
+  { label: "13 Sep, 04:00 PM", temp: 39.6 }, // Anomaly spike!
+  { label: "13 Sep, 04:15 PM", temp: 39.8 }, // Anomaly peak
+  { label: "13 Sep, 05:00 PM", temp: 38.8 }, // Cooling down
+  { label: "13 Sep, 08:00 PM", temp: 38.5 },
+  { label: "14 Sep, 08:00 AM", temp: 38.4 },
+  { label: "14 Sep, 10:00 AM", temp: 38.5 },
+  { label: "14 Sep, 11:30 AM", temp: 38.6 },
+];
 
 function getStatusInfo(t: number) {
   if (t >= 39.5) return { label: "FEVER", color: "#EF4444", bg: "#FEE2E2", alert: true };
@@ -44,14 +30,43 @@ function getStatusInfo(t: number) {
 }
 
 function TempSensePage() {
-  const [temperature, setTemperature] = useState(38.5);
+  const [temperature, setTemperature] = useState(38.6);
   const [isHeating, setIsHeating] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const defaultFluctuationRef = useRef<number | null>(null);
   
-  const [history, setHistory] = useState(initialHistory);
+  const [history, setHistory] = useState(STATIC_MOCK_HISTORY);
+
+  // Background slight fluctuation
+  useEffect(() => {
+    const minTime = 3000;
+    const maxTime = 7000;
+
+    const fluctuate = () => {
+      if (!isHeating) { // don't interfere if 't' anomaly simulation is running
+        setTemperature(prev => {
+          // slight fluctuation: ±0.1
+          const delta = (Math.random() > 0.5 ? 0.1 : -0.1);
+          let next = Number((prev + delta).toFixed(1));
+          // keep it in a normal healthy range (38.3 - 38.8) unless it was already pushed out
+          if (next > 38.9) next = 38.8;
+          if (next < 38.3) next = 38.4;
+          return next;
+        });
+      }
+      
+      const nextDelay = Math.random() * (maxTime - minTime) + minTime;
+      defaultFluctuationRef.current = window.setTimeout(fluctuate, nextDelay);
+    };
+    
+    defaultFluctuationRef.current = window.setTimeout(fluctuate, minTime);
+    return () => {
+      if (defaultFluctuationRef.current) clearTimeout(defaultFluctuationRef.current);
+    };
+  }, [isHeating]);
 
   useEffect(() => {
-    // Keep history updated with live temp as the last point
+    // Keep history updated with live temp as the last point, replacing the 11:30AM point
     setHistory(prev => {
       const copy = [...prev];
       copy[copy.length - 1] = { label: "Now", temp: temperature };
@@ -61,36 +76,44 @@ function TempSensePage() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 't') {
+      if (e.key.toLowerCase() === "t") {
         setIsHeating(prev => {
           const nextState = !prev;
           if (timerRef.current) clearInterval(timerRef.current);
           
-          timerRef.current = window.setInterval(() => {
-            setTemperature(t => {
-              let delta = 0;
-              if (nextState) {
-                delta = Math.random() * 0.2 + 0.1; 
-              } else {
-                delta = t > 38.5 ? -(Math.random() * 0.1 + 0.05) : 0;
-              }
-              const newT = Number((t + delta).toFixed(1));
-              
-              if (newT >= 39.5 && t < 39.5) {
-                addNotification({ Icon: AlertTriangle, color: "#F44336", text: "High body temperature detected (" + newT + "°C)" });
-              }
-              return newT;
-            });
-          }, 300);
+          if (nextState) {
+            timerRef.current = window.setInterval(() => {
+              setTemperature(t => {
+                const delta = Math.random() * 0.2 + 0.1; 
+                const newT = Number((t + delta).toFixed(1));
+                
+                if (newT >= 39.5 && t < 39.5) {
+                  addNotification({ Icon: AlertTriangle, color: "#F44336", text: "High body temperature detected (" + newT + "°C)" });
+                }
+                return newT;
+              });
+            }, 300);
+          } else {
+             // Return to normal quickly
+             timerRef.current = window.setInterval(() => {
+               setTemperature(t => {
+                 if (t <= 38.6) {
+                   if (timerRef.current) clearInterval(timerRef.current);
+                   return 38.6;
+                 }
+                 return Number((t - 0.2).toFixed(1));
+               });
+             }, 300);
+          }
           
           return nextState;
         });
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
@@ -163,12 +186,12 @@ function TempSensePage() {
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="label" hide />
-                <YAxis domain={['dataMin - 0.5', 'dataMax + 0.5']} hide />
+                <YAxis domain={["dataMin - 0.5", "dataMax + 0.5"]} hide />
                 <Tooltip 
                   contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
                   labelStyle={{ color: SP.usuzumi, fontSize: 12 }}
                   itemStyle={{ color: SP.sumi, fontWeight: 700 }}
-                  formatter={(value: number) => [`${value.toFixed(1)} °C`, "Temp"]}
+                  formatter={(value) => [`${Number(value).toFixed(1)} °C`, "Temp"]}
                 />
                 <Area type="monotone" dataKey="temp" stroke={status.color} strokeWidth={3} fillOpacity={1} fill="url(#colorTemp)" />
               </AreaChart>
@@ -177,7 +200,7 @@ function TempSensePage() {
          
          <div className="flex items-center gap-2 mt-4 text-xs font-medium" style={{ color: SP.usuzumi, background: "var(--bg-secondary)", padding: "12px 16px", borderRadius: 12 }}>
             <CalendarClock size={16} />
-            <span>Includes data from Yesterday to Now</span>
+            <span>Includes data from 13 Sep 9:00 AM to 14 Sep 11:30 AM</span>
          </div>
       </Card>
     </SensorPage>
