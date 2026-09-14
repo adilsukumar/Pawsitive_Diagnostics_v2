@@ -50,7 +50,7 @@ export function TopBar({
   const notifications = useNotifications();
   return (
     <>
-      <header className="sticky top-0 z-40" style={{ background: "color-mix(in oklab, var(--bg-topbar) 94%, transparent)", backdropFilter: "blur(16px)", borderBottom: "1px solid var(--border-subtle)" }}>
+      <header className="sticky top-0 z-40" style={{ background: "var(--bg-topbar)", borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center" style={{ padding: "8px 16px", minHeight: 64, gap: 10 }}>
           <div className="flex items-center" style={{ gap: 8 }}>
             {onMenuClick && <HamburgerButton isOpen={menuOpen} onClick={onMenuClick} />}

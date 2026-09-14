@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Home, MapPin, HeartPulse, Users, User, ScanSearch, Pill, type LucideIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, startTransition } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 type Tab = {
@@ -41,7 +41,11 @@ export default function BottomNav() {
   const handleTap = (route: string) => {
     setBouncing(route);
     setTimeout(() => setBouncing(null), 220);
-    if (loc.pathname !== route) navigate({ to: route });
+    if (loc.pathname !== route) {
+      startTransition(() => {
+        navigate({ to: route });
+      });
+    }
   };
 
   return (

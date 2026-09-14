@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Home, MapPin, Bot, HeartPulse, Users, FileHeart, BookOpen, Settings, ChevronRight, LogIn, LogOut, ScanSearch, Pill } from "lucide-react";
 import { useT } from "@/context/LanguageContext";
@@ -77,7 +77,12 @@ export default function SideDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
 
   const handleNav = (route: string) => {
     onClose();
-    setTimeout(() => navigate({ to: route }), 150);
+    // Use React 18 startTransition to prevent the route change from blocking the UI thread
+    setTimeout(() => {
+      startTransition(() => {
+        navigate({ to: route });
+      });
+    }, 50);
   };
 
   const isVet = hydrated && session?.role === "vet";
