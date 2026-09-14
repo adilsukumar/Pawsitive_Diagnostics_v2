@@ -5,6 +5,8 @@ import AppShell, { TopBar } from "@/components/AppShell";
 import { SenseBanner } from "@/components/SenseBanner";
 import { useLanguage, useT } from "@/context/LanguageContext";
 import { NoData, DASH } from "@/components/NoData";
+import { analyzeSkinImage, type SkinAnalysisResult } from "@/lib/gemini";
+
 
 export const Route = createFileRoute("/skin-sense")({ component: SkinSensePage });
 
@@ -93,22 +95,51 @@ const QUICK_QS = [
 ];
 
 /* ---------- Main page ---------- */
+type HistoryItem = { id: string; date: number; image: string; result: SkinAnalysisResult };
+
 function SkinSensePage() {
   const t = useT();
   const [photo, setPhoto] = useState<string | null>(null);
+  const [b64Photo, setB64Photo] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
-  const [done, setDone] = useState(false);
+  const [result, setResult] = useState<SkinAnalysisResult | null>(null);
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
+    try {
+      const h = localStorage.getItem("skinsense_history");
+      return h ? JSON.parse(h) : [];
+    } catch { return []; }
+  });
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
 
   function onFile(file: File | undefined) {
     if (!file) return;
-    setPhoto(URL.createObjectURL(file));
-    setDone(false);
+    const url = URL.createObjectURL(file);
+    setPhoto(url);
+    setResult(null);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => setB64Photo(e.target?.result as string);
+    reader.readAsDataURL(file);
   }
-  function analyze() {
+  
+  async function analyze() {
+    if (!b64Photo) return;
     setAnalyzing(true);
-    setTimeout(() => { setAnalyzing(false); setDone(true); }, 1500);
+    try {
+      const res = await analyzeSkinImage(b64Photo);
+      setResult(res);
+      const newItem: HistoryItem = { id: Date.now().toString(), date: Date.now(), image: b64Photo, result: res };
+      setHistory(prev => {
+        const next = [newItem, ...prev].slice(0, 10);
+        localStorage.setItem("skinsense_history", JSON.stringify(next));
+        return next;
+      });
+    } catch (e: any) {
+      alert("Error analyzing image: " + e.message);
+    } finally {
+      setAnalyzing(false);
+    }
   }
 
   return (
@@ -220,7 +251,7 @@ function SkinSensePage() {
               <div style={{ position: "relative", borderRadius: 20, overflow: "hidden" }}>
                 <img src={photo} alt="upload" style={{ width: "100%", aspectRatio: "4/3", objectFit: "cover", display: "block" }} />
                 <button
-                  onClick={() => { setPhoto(null); setDone(false); }}
+                  onClick={() => { setPhoto(null); setResult(null); }}
                   style={{
                     position: "absolute", top: 10, right: 10,
                     background: "rgba(255,255,255,0.95)", color: "var(--acc-deep)",
@@ -285,20 +316,40 @@ function SkinSensePage() {
           </PinkCard>
 
           {/* ===== SECTION 3: DIAGNOSIS RESULT ===== */}
-          {done && photo && (
+          {result && photo && (
             <PinkCard style={{ animation: "ssIn 400ms cubic-bezier(.2,.7,.2,1) both" }}>
               <Label jp="診断結果" en="Diagnosis Result" />
 
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                <img src={photo} alt="scan" style={{ width: 60, height: 60, borderRadius: 16, objectFit: "cover", flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: C.text2, lineHeight: 1.5 }}>
-                  {t("スキャンを保存しました。", "Scan saved. Results appear once your sensors report a reading.")}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
+                <img src={photo} alt="scan" style={{ width: 70, height: 70, borderRadius: 16, objectFit: "cover", flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "var(--acc-deep)", marginBottom: 4 }}>
+                    {result.diseaseName}
+                  </div>
+                  <div style={{ fontSize: 13, color: C.text2, lineHeight: 1.5 }}>
+                    {result.description}
+                  </div>
                 </div>
               </div>
-              <NoData
-                title={t("結果はまだありません", "No result yet")}
-                hint={t("センサーからのデータを待っています。", "Waiting for your collar sensors to report skin readings.")}
-              />
+
+              <div style={{
+                background: result.urgency === "high" ? "rgba(220, 38, 38, 0.1)" : result.urgency === "medium" ? "var(--acc-pale)" : "var(--acc2-pale)",
+                padding: "10px 14px", borderRadius: 12, marginBottom: 16,
+                display: "inline-flex", alignItems: "center", gap: 8
+              }}>
+                <Flame size={18} color={result.urgency === "high" ? "#DC2626" : result.urgency === "medium" ? "var(--acc-deep)" : "var(--acc2-strong)"} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: result.urgency === "high" ? "#DC2626" : result.urgency === "medium" ? "var(--acc-deep)" : "var(--acc2-strong)" }}>
+                  {t("緊急度: ", "Urgency: ")}{result.urgency.toUpperCase()}
+                </span>
+              </div>
+
+              <GuideRow titleJp="対処法" titleEn="What to do" jp="" en={result.whatToDo} />
+              <div style={{ marginTop: 12 }}>
+                <GuideRow titleJp="避けるべきこと" titleEn="What NOT to do" jp="" en={result.whatNotToDo} />
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <GuideRow titleJp="避けるべき食べ物" titleEn="Foods to avoid" jp="" en={result.foodToAvoid} />
+              </div>
             </PinkCard>
           )}
 
@@ -308,10 +359,32 @@ function SkinSensePage() {
           {/* ===== SECTION 5: HISTORY ===== */}
           <PinkCard>
             <Label jp="分析履歴" en="Analysis History" />
-            <NoData
-              title={t("履歴はまだありません", "No analyses yet")}
-              hint={t("スキャンすると履歴がここに表示されます。", "Your scans and sensor readings will be listed here once recorded.")}
-            />
+            {history.length === 0 ? (
+              <NoData
+                title={t("履歴はまだありません", "No analyses yet")}
+                hint={t("スキャンすると履歴がここに表示されます。", "Your scans and sensor readings will be listed here once recorded.")}
+              />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {history.map((h, i) => (
+                  <div key={h.id} style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    paddingBottom: i !== history.length - 1 ? 12 : 0,
+                    borderBottom: i !== history.length - 1 ? 1px solid var(--acc-pale) : "none"
+                  }}>
+                    <img src={h.image} alt="history" style={{ width: 48, height: 48, borderRadius: 12, objectFit: "cover", flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                        {h.result.diseaseName}
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>
+                        {new Date(h.date).toLocaleDateString()} • {h.result.urgency.toUpperCase()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </PinkCard>
 
           {/* ===== SECTION 6: AI INSIGHT ===== */}
