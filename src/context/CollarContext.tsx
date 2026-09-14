@@ -164,6 +164,7 @@ export function CollarProvider({ children }: { children: ReactNode }) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       clearInterval(timer);
+        clearInterval(fluctuationTimer);
     };
   }, []);
 
