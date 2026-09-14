@@ -61,3 +61,53 @@ Do not include any Markdown formatting blocks (like \\\json) in your output, jus
     throw err;
   }
 }
+
+export async function chatWithGemini(
+  messages: { role: "user" | "ai"; text: string }[],
+  base64Image?: string | null,
+  analysisResult?: SkinAnalysisResult | null
+): Promise<string> {
+  if (!API_KEY) throw new Error("Missing VITE_GEMINI_API_KEY in .env.local");
+  
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-flash",
+    systemInstruction: "You are a helpful veterinary dermatologist AI assistant. You answer questions about dogs, their skin conditions, health, and general veterinary advice. You are speaking directly to a dog owner."
+  });
+  
+  // Format history for Gemini
+  const history = messages.slice(0, -1).map(m => ({
+    role: m.role === "ai" ? "model" : "user",
+    parts: [{ text: m.text }]
+  }));
+
+  const chat = model.startChat({
+    history: history,
+  });
+
+  const lastMessage = messages[messages.length - 1].text;
+  const promptParts: any[] = [lastMessage];
+
+  if (analysisResult && messages.length === 1) {
+     promptParts.push("Context: We just scanned the dog's skin and the AI (you) diagnosed it as: " + JSON.stringify(analysisResult));
+  }
+
+  if (base64Image && messages.length === 1) {
+    const base64Data = base64Image.split(',')[1] || base64Image;
+    const mimeType = base64Image.split(';')[0].split(':')[1] || "image/jpeg";
+    promptParts.push({
+      inlineData: {
+        data: base64Data,
+        mimeType
+      }
+    });
+  }
+
+  try {
+    const result = await chat.sendMessage(promptParts);
+    const response = await result.response;
+    return response.text();
+  } catch (err) {
+    console.error("Gemini Chat Error:", err);
+    throw err;
+  }
+}

@@ -5,7 +5,7 @@ import AppShell, { TopBar } from "@/components/AppShell";
 import { SenseBanner } from "@/components/SenseBanner";
 import { useLanguage, useT } from "@/context/LanguageContext";
 import { NoData, DASH } from "@/components/NoData";
-import { analyzeSkinImage, type SkinAnalysisResult } from "@/lib/gemini";
+import { analyzeSkinImage, chatWithGemini, type SkinAnalysisResult } from "@/lib/gemini";
 
 
 export const Route = createFileRoute("/skin-sense")({ component: SkinSensePage });
@@ -354,7 +354,7 @@ function SkinSensePage() {
           )}
 
           {/* ===== SECTION 4: AI CHAT ===== */}
-          <AIChat />
+          <AIChat b64Photo={b64Photo} result={result} />
 
           {/* ===== SECTION 5: HISTORY ===== */}
           <PinkCard>
@@ -491,7 +491,7 @@ function GuideRow({ titleJp, titleEn, jp, en }: { titleJp: string; titleEn: stri
 /* ---------- AI Chat ---------- */
 type ChatMsg = { role: "ai" | "user"; jp: string; en: string };
 
-function AIChat() {
+function AIChat({ b64Photo, result }: { b64Photo: string | null; result: SkinAnalysisResult | null }) {
   const t = useT();
   const [messages, setMessages] = useState<ChatMsg[]>([
     { role: "ai",
@@ -506,14 +506,21 @@ function AIChat() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
 
-  function sendText(jp: string, en: string) {
-    setMessages((m) => [...m, { role: "user", jp, en }]);
+  async function sendText(jp: string, en: string) {
+    const newMessages = [...messages, { role: "user" as const, jp, en }];
+    setMessages(newMessages);
     setTyping(true);
-    setTimeout(() => {
-      const r = AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)];
-      setMessages((m) => [...m, { role: "ai", jp: r.jp, en: r.en }]);
+    
+    try {
+      // Map to Gemini format
+      const geminiMessages = newMessages.map(m => ({ role: m.role, text: m.en }));
+      const response = await chatWithGemini(geminiMessages, b64Photo, result);
+      setMessages(m => [...m, { role: "ai", jp: response, en: response }]);
+    } catch (err: any) {
+      setMessages(m => [...m, { role: "ai", jp: "エラーが発生しました。", en: "An error occurred while connecting to AI." }]);
+    } finally {
       setTyping(false);
-    }, 1000);
+    }
   }
 
   function handleSend() {
