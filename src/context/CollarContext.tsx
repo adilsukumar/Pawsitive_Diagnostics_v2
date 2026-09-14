@@ -21,7 +21,7 @@ type LiveMap = Record<SensorKey, LiveReading | null>;
 
 const EMPTY_LIVE: LiveMap = {
   skin: { value: 32.1, unit: "C", at: Date.now() },
-  motion: { value: 1.2, unit: "m/s²", at: Date.now() },
+  motion: { value: 0.3, unit: "m/s²", at: Date.now() },
   temp: { value: 38.5, unit: "C", at: Date.now() },
   humidity: { value: 45, unit: "% RH", at: Date.now() },
   pressure: { value: 101.3, unit: "kPa", at: Date.now() },
@@ -337,6 +337,7 @@ export function useCollar(): CollarCtx {
   if (!v) throw new Error("useCollar must be used inside CollarProvider");
   return v;
 }
+
 
 
 
