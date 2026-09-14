@@ -1,6 +1,7 @@
 ﻿import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
+  useLocation,
   Link,
   createRootRouteWithContext,
   useRouter,
@@ -9,12 +10,14 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 
+import { useEffect } from "react";
 import appCss from "../styles.css?url";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { PetProvider } from "@/context/PetContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { CollarProvider } from "@/context/CollarContext";
 import { Toaster } from "@/components/ui/sonner";
+
 
 function NotFoundComponent() {
   return (
@@ -137,6 +140,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+
+  // Scroll to top on every route change — both window and main-scroll container
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.getElementById("main-scroll")?.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -144,8 +154,13 @@ function RootComponent() {
         <PetProvider>
           <AuthProvider>
             <CollarProvider>
-              <Outlet />
-              <Toaster />
+                            <Outlet />
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 9999, overflow: 'hidden' }}>
+                <div style={{ width: '100%', maxWidth: 430, position: 'relative', transform: 'translateZ(0)' }}>
+                  <Toaster position="top-center" style={{ pointerEvents: 'auto' }} />
+                </div>
+              </div>
+              
             </CollarProvider>
           </AuthProvider>
         </PetProvider>

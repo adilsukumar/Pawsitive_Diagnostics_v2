@@ -1,4 +1,6 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useCollar } from "@/context/CollarContext";
+import { calculateScores } from "@/lib/score";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mic, Activity, CalendarDays, Volume2, Smile, AlertTriangle, Frown, Zap } from "lucide-react";
@@ -18,7 +20,9 @@ const EMOTIONS: Record<string, Omit<EmotionData, "percentage">> = {
 };
 
 function AudioVisualizer({ isRecording, activeColor }: { isRecording: boolean; activeColor: string }) {
+  
   const bars = 24;
+    
   return (
     <div className="flex items-center justify-center gap-1 h-16 w-full">
       {[...Array(bars)].map((_, i) => {
@@ -42,6 +46,8 @@ function AudioVisualizer({ isRecording, activeColor }: { isRecording: boolean; a
 }
 
 function BarkSensePage() {
+  const { live } = useCollar();
+  const scores = calculateScores(78, live.motion?.value, live.skin?.value, live.bark?.value, live.temp?.value);
   const [currentMood, setCurrentMood] = useState<EmotionData>({ ...EMOTIONS["n"], percentage: 99 });
   const [isRecording, setIsRecording] = useState(true);
 
@@ -50,7 +56,8 @@ function BarkSensePage() {
   useEffect(() => {
     if (!isRecording) return;
     const interval = setInterval(() => setTick((t) => t + 1), 100);
-    return () => clearInterval(interval);
+      
+  return () => clearInterval(interval);
   }, [isRecording]);
 
   useEffect(() => {
@@ -58,7 +65,7 @@ function BarkSensePage() {
       const key = e.key.toLowerCase();
       if (EMOTIONS[key]) {
         setIsRecording(true);
-        const pct = Math.floor(Math.random() * (98 - 85 + 1)) + 85; const newMood = { ...EMOTIONS[key], percentage: pct }; setCurrentMood(newMood); if (["a", "f", "p"].includes(key)) { addNotification({ Icon: newMood.icon, color: newMood.color, text: "Abnormal vocalization detected: " + newMood.name }); }
+        const pct = Math.floor(Math.random() * (98 - 85 + 1)) + 85; const newMood = { ...EMOTIONS[key], percentage: pct }; setCurrentMood(newMood); if (["a", "f", "p"].includes(key)) { addNotification({ Icon: newMood.icon, color: newMood.color, text: "Abnormal vocalization detected: " + newMood.name, link: "/bark-sense" }); }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -68,7 +75,7 @@ function BarkSensePage() {
   const Icon = currentMood.icon;
 
   return (
-    <SensorPage
+    <SensorPage score={scores.barkScore}
       titleEn="BarkSense AI"
       subtitleEn="Vocal Analysis"
       descriptorEn="Real-time emotion & bark decoding"
@@ -129,7 +136,7 @@ function BarkSensePage() {
         <h3 className="text-sm font-bold mb-2 opacity-90">Today's Summary</h3>
         <p className="text-sm font-medium leading-relaxed opacity-100">
           Your dog was predominantly <span className="text-green-300 font-bold">Happy and Energetic</span> today. 
-          Vocal activity increased during the 2:30 PM park visit. No prolonged distress or pain markers detected.
+          Vocal activity increased during the 10:30 AM park visit. No prolonged distress or pain markers detected.
         </p>
       </div>
 
@@ -147,11 +154,27 @@ function BarkSensePage() {
             </div>
             <div>
               <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-bold text-green-600">Today, 2:30 PM</span>
+                <span className="text-xs font-bold text-green-600">Today, 10:30 AM</span>
                 <span className="text-xs font-bold text-gray-400">92% Happy</span>
               </div>
               <p className="text-sm font-medium text-gray-700 leading-snug">
                 Playful barking detected during park visit. High energy levels.
+              </p>
+            </div>
+          </div>
+
+
+          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+              <Smile size={18} className="text-blue-500" />
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs font-bold text-blue-500">Yesterday, 4:20 PM</span>
+                <span className="text-xs font-bold text-gray-400">95% Calm</span>
+              </div>
+              <p className="text-sm font-medium text-gray-700 leading-snug">
+                Normal ambient background. Relaxed breathing patterns.
               </p>
             </div>
           </div>
@@ -175,6 +198,4 @@ function BarkSensePage() {
     </SensorPage>
   );
 }
-
-
 

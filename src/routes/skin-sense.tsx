@@ -1,3 +1,5 @@
+import { calculateScores } from "@/lib/score";
+import { useCollar } from "@/context/CollarContext";
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, useEffect, type CSSProperties, type ReactNode } from "react";
 import { Camera, Image as ImageIcon, Sparkles, Send, Droplet, Layers, Palette, Flame, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
@@ -6,7 +8,6 @@ import { SenseBanner } from "@/components/SenseBanner";
 import { useLanguage, useT } from "@/context/LanguageContext";
 import { NoData, DASH } from "@/components/NoData";
 import { analyzeSkinImage, chatWithGemini, type SkinAnalysisResult } from "@/lib/gemini";
-
 
 export const Route = createFileRoute("/skin-sense")({ component: SkinSensePage });
 
@@ -36,6 +37,7 @@ function Bi({ jp, en, jpStyle, enStyle, as: As = "div" }: {
 }) {
   const { language } = useLanguage();
   return <As style={enStyle ?? jpStyle}>{en}</As>;
+    
   return (<><As style={jpStyle}>{jp}</As><As style={enStyle}>{en}</As></>);
 }
 
@@ -78,7 +80,6 @@ const SEV: Record<Severity, { color: string; bg: string; jp: string; en: string 
   severe:   { color: C.sev, bg: "var(--acc-pale)", jp: "重度",   en: "Severe" },
 };
 
-
 /* ---------- AI chat canned responses ---------- */
 const AI_RESPONSES = [
   { jp: "現在の所見では深刻な兆候は見られません。スコアは94で健康範囲内です。", en: "Based on current findings, no serious signs detected. Score 94 is within healthy range." },
@@ -98,6 +99,9 @@ const QUICK_QS = [
 type HistoryItem = { id: string; date: number; image: string; result: SkinAnalysisResult };
 
 function SkinSensePage() {
+  const { live } = useCollar();
+  const scores = calculateScores(78, live.motion?.value, live.skin?.value, live.bark?.value, live.temp?.value);
+  const skinScore = scores.skin;
   const t = useT();
   const [photo, setPhoto] = useState<string | null>(null);
   const [b64Photo, setB64Photo] = useState<string | null>(null);
@@ -161,7 +165,7 @@ function SkinSensePage() {
 
       <div style={{ background: "var(--bg-page)", minHeight: "100%", paddingBottom: 110 }}>
         {/* ---- HERO ---- */}
-        <SenseBanner
+        <SenseBanner score={skinScore}
           subtitleEn="SkinSense AI"
           titleEn="SkinSense AI"
           descriptorEn="Skin health analysis"
@@ -182,6 +186,7 @@ function SkinSensePage() {
             {(() => {
               const latest = history.length > 0 ? history[0] : null;
               const skinScore = latest?.result?.skinScore ?? 78;
+  
               const lastScan = latest ? new Date(latest.date).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "14 Sep, 11:00 AM";
               const condition = latest?.result?.condition ?? "Moderately Healthy";
               
@@ -203,7 +208,6 @@ function SkinSensePage() {
             ))})()}
           </div>
         </div>
-
 
         {/* ---- Content ---- */}
         <div style={{ padding: "16px", marginTop: 16 }}>
@@ -376,7 +380,7 @@ function SkinSensePage() {
                   <div key={h.id} style={{
                     display: "flex", alignItems: "center", gap: 12,
                     paddingBottom: i !== history.length - 1 ? 12 : 0,
-                    borderBottom: i !== history.length - 1 ? 1px solid var(--acc-pale) : "none"
+                    borderBottom: i !== history.length - 1 ? "1px solid var(--acc-pale)" : "none"
                   }}>
                     <img src={h.image} alt="history" style={{ width: 48, height: 48, borderRadius: 12, objectFit: "cover", flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -710,6 +714,7 @@ function AIInsight({ result, history }: { result: SkinAnalysisResult | null, his
 
 /* ---------- Tiny paw icon ---------- */
 function PawIcon({ color, size = 16 }: { color: string; size?: number }) {
+
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden>
       <ellipse cx="6" cy="9" rx="2" ry="2.6" />

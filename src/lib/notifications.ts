@@ -8,6 +8,7 @@ export type NotificationItem = {
   color: string;
   text: string;
   time: string;
+  link?: string;
 };
 
 let globalNotifications: NotificationItem[] = [];
@@ -24,6 +25,8 @@ export function addNotification(n: Omit<NotificationItem, "id" | "time">) {
   
   toast.error(n.text, {
     duration: 5000,
+    onClick: n.link ? () => { window.location.href = n.link!; } : undefined,
+    action: n.link ? { label: "View", onClick: () => { window.location.href = n.link!; } } : undefined
   });
 }
 

@@ -25,7 +25,8 @@ const MIRRORS = [
 ];
 
 /** Search radii in metres — widen until we find something. */
-const RADII = [8000, 20000, 50000];
+const RADII = [8000, 20000, 50000, 100000, 250000, 500000];
+const DEFAULT_LOCATION = { lat: 19.0544, lon: 72.8406 }; // Bandra, Mumbai
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371;
@@ -45,7 +46,7 @@ function buildQuery(lat: number, lon: number, radius: number) {
     node["healthcare"="veterinary"](${around});
     way["healthcare"="veterinary"](${around});
     node["shop"="pet"]["veterinary"="yes"](${around});
-  );out center 40;`;
+  );out center 300;`;
 }
 
 async function overpass(query: string): Promise<any | null> {
@@ -106,8 +107,9 @@ export function useNearbyVets() {
   }, []);
 
   useEffect(() => {
-    if (!geo.coords) return;
-    const { lat, lon } = geo.coords;
+    if (!geo.coords && geo.loading) return;
+    // The app uses Bandra as its default location when GPS is unavailable.
+    const { lat, lon } = geo.coords ?? DEFAULT_LOCATION;
 
     // Use cache when the user hasn't moved far
     try {
@@ -156,7 +158,7 @@ export function useNearbyVets() {
     })();
 
     return () => { cancelled = true; };
-  }, [geo.coords?.lat, geo.coords?.lon, nonce]);
+  }, [geo.coords?.lat, geo.coords?.lon, geo.loading, nonce]);
 
   return { vets, loading, error, refresh, geo };
 }

@@ -6,6 +6,7 @@ import { useLanguage, useT } from "@/context/LanguageContext";
 import { usePet, displayName } from "@/context/PetContext";
 import { Activity, Footprints, Flame, Timer, AlertTriangle } from "lucide-react";
 import { useCollar } from "@/context/CollarContext";
+import { calculateScores } from "@/lib/score";
 import { NoData, DASH } from "@/components/NoData";
 import { toast } from "sonner";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -38,6 +39,8 @@ const C = {
 
 // ---------- Reusable ----------
 function CardBox({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  
+    
   return (
     <div
       style={{
@@ -100,6 +103,8 @@ const MOCK_1D_ACTIVITIES = [
 
 // ---------- Page ----------
 function MotionSensePage() {
+  const { live } = useCollar();
+  const scores = calculateScores(78, live.motion?.value, live.skin?.value, live.bark?.value, live.temp?.value);
   const t = useT();
   const { pet } = usePet();
   const name = displayName(pet, "Fluffy");
@@ -113,14 +118,15 @@ function MotionSensePage() {
       if (e.key.toLowerCase() === "m") {
         setAnomaly((a) => {
           const next = !a;
-          if (next) toast.error(t("歩行異常を検知しました", "Gait Abnormality Detected! Limping suspected."));
+          if (next) toast.error(t("歩行異常を検知しました", "Gait Abnormality Detected! Limping suspected."), { action: { label: "View", onClick: () => window.location.href = "/motion-sense" }, onClick: () => window.location.href = "/motion-sense" });
           else toast.success(t("正常に戻りました", "Movement Normalized."));
           return next;
         });
       }
     };
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+      
+  return () => window.removeEventListener("keydown", handleKey);
   }, [t]);
 
   useEffect(() => {
@@ -142,14 +148,14 @@ function MotionSensePage() {
         <TopBar showBack backTo="/home" menuOpen={menuOpen} onMenuClick={onMenuClick} />
       )}
     >
-      <style>{
+      <style>{`
         .ms-stack > * { opacity:0; animation: msCardIn 350ms cubic-bezier(.2,.7,.2,1) forwards; }
         @keyframes msCardIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-      }</style>
+      `}</style>
 
       <div style={{ background: C.page, minHeight: "100%", paddingBottom: 100 }}>
         {/* HEADER */}
-        <SenseBanner
+        <SenseBanner score={scores.motionScore}
           subtitleEn="MotionSense"
           titleEn="MotionSense"
           descriptorEn="Activity tracking"
@@ -228,11 +234,11 @@ function MotionSensePage() {
                   {MOCK_1D_ACTIVITIES.map((act, i) => (
                     <div key={act.id} style={{
                       display: "flex", alignItems: "center", gap: 14,
-                      paddingBottom: 12, borderBottom: i === MOCK_1D_ACTIVITIES.length - 1 ? "none" : 1px solid 
+                      paddingBottom: 12, borderBottom: i === MOCK_1D_ACTIVITIES.length - 1 ? "none" : "1px solid var(--bg-elevated)" 
                     }}>
                       <div style={{
                         width: 44, height: 44, borderRadius: "50%",
-                        background: ${act.color}20, color: act.color,
+                        background: `${act.color}20`, color: act.color,
                         display: "flex", alignItems: "center", justifyContent: "center",
                       }}>
                         <act.icon size={20} />
@@ -265,7 +271,7 @@ function MotionSensePage() {
                   { label: "PEAK ACTIVITY", value: DASH },
                   { label: "ACTIVE TIME", value: DASH },
                 ].map((s, i) => (
-                  <div key={i} style={{ textAlign: "center", borderLeft: i === 0 ? "none" : 1px solid  }}>
+                  <div key={i} style={{ textAlign: "center", borderLeft: i === 0 ? "none" : "1px solid var(--bg-elevated)"  }}>
                     <div style={{ fontSize: 9, color: C.muted, fontWeight: 700, letterSpacing: "0.06em", marginBottom: 6 }}>{s.label}</div>
                     <div style={{ fontSize: 18, fontWeight: 800, color: C.sumi }}>{s.value}</div>
                   </div>

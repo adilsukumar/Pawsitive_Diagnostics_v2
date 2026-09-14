@@ -611,7 +611,7 @@ function Community() {
                         }}
                       >
                         <MessageCircle size={14} />
-                        <span style={{ fontSize: 13, fontWeight: 700 }}>{p.com}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700 }}>{(commentsByPost[p.id]?.length || 0)}</span>
                       </button>
 
                       <button

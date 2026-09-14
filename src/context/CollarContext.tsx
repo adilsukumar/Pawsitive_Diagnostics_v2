@@ -161,21 +161,26 @@ export function CollarProvider({ children }: { children: ReactNode }) {
       }));
     }, 500);
 
-      const fluctuationTimer = setInterval(() => {
+      let timeoutId: any;
+      const fluctuate = () => {
         setLive((prev) => {
-          const newTemp = prev.temp ? prev.temp.value + (Math.random() * 0.2 - 0.1) : 38.5;
-          const newHumidity = prev.humidity ? prev.humidity.value + (Math.random() * 2 - 1) : 45;
+          const newTemp = prev.temp ? prev.temp.value + (Math.random() * 0.02 - 0.01) : 38.5;
+          const newPressure = prev.pressure ? prev.pressure.value + (Math.random() > 0.5 ? 0.01 : 0) : 101.3;
+          const newHumidity = prev.humidity ? prev.humidity.value + (Math.random() * 0.4 - 0.2) : 45;
           return {
             ...prev,
-            temp: { ...prev.temp, value: Number(newTemp.toFixed(1)), at: Date.now(), unit: "C" },
-            humidity: { ...prev.humidity, value: Math.max(0, Math.min(100, Math.round(newHumidity))), at: Date.now(), unit: "% RH" }
-          }
+            temp: { ...prev.temp, value: Number(newTemp.toFixed(2)), at: Date.now(), unit: "C" },
+            humidity: { ...prev.humidity, value: Number(newHumidity.toFixed(1)), at: Date.now(), unit: "% RH" },
+            pressure: { ...prev.pressure, value: Number(newPressure.toFixed(2)), at: Date.now(), unit: "kPa" }
+          };
         });
-      }, 3000);
+        timeoutId = setTimeout(fluctuate, Math.random() * 8000 + 4000); // random between 4s and 12s
+      };
+      timeoutId = setTimeout(fluctuate, 4000);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       clearInterval(timer);
-        clearInterval(fluctuationTimer);
+        clearTimeout(timeoutId);
     };
   }, []);
 

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { calculateScores } from "@/lib/score";
 import { useState, useEffect, useRef } from "react";
 import { Card, SectionLabel, SensorPage, SP } from "@/components/SensorPage";
 import { Thermometer, AlertTriangle, Activity, CalendarClock } from "lucide-react";
@@ -23,6 +24,7 @@ const STATIC_MOCK_HISTORY = [
 ];
 
 function getStatusInfo(t: number) {
+  
   if (t >= 39.5) return { label: "FEVER", color: "#EF4444", bg: "#FEE2E2", alert: true };
   if (t >= 39.2) return { label: "ELEVATED", color: "#F59E0B", bg: "#FEF3C7", alert: false };
   if (t <= 37.8) return { label: "LOW", color: "#3B82F6", bg: "#EFF6FF", alert: false };
@@ -36,6 +38,7 @@ function TempSensePage() {
   const defaultFluctuationRef = useRef<number | null>(null);
   
   const [history, setHistory] = useState(STATIC_MOCK_HISTORY);
+  const scores = calculateScores(78, temperature, null, null, null);
 
   // Background slight fluctuation
   useEffect(() => {
@@ -60,7 +63,9 @@ function TempSensePage() {
     };
     
     defaultFluctuationRef.current = window.setTimeout(fluctuate, minTime);
-    return () => {
+      
+    
+  return () => {
       if (defaultFluctuationRef.current) clearTimeout(defaultFluctuationRef.current);
     };
   }, [isHeating]);
@@ -88,7 +93,7 @@ function TempSensePage() {
                 const newT = Number((t + delta).toFixed(1));
                 
                 if (newT >= 39.5 && t < 39.5) {
-                  addNotification({ Icon: AlertTriangle, color: "#F44336", text: "High body temperature detected (" + newT + "°C)" });
+                  addNotification({ Icon: AlertTriangle, color: "#F44336", text: "High body temperature detected (" + newT + "°C)", link: "/temp-sense" });
                 }
                 return newT;
               });
@@ -121,7 +126,7 @@ function TempSensePage() {
   const status = getStatusInfo(temperature);
 
   return (
-    <SensorPage
+    <SensorPage score={scores.tempScore}
       titleEn="Temperature"
       subtitleEn="TempSense AI"
       descriptorEn="Core body-temperature monitoring"

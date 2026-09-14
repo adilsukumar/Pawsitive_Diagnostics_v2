@@ -451,3 +451,9 @@ body {
     transform: scale(0.965);
   }
 }
+
+
+/* Make Sonner toaster strictly absolute and contained inside the mobile frame */
+[data-sonner-toaster] {
+  position: absolute !important;
+}

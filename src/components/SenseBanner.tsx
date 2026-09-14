@@ -7,7 +7,9 @@ export function SenseBanner({
   descriptorEn,
   bgGradient,
   subtitleColor,
+  score,
 }: {
+  score?: number;
   subtitleEn: string;
   titleEn: string;
   descriptorEn: string;
@@ -77,6 +79,15 @@ export function SenseBanner({
               {descriptorEn}
             </div>
           </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+          {score !== undefined && (
+            <div style={{ 
+              background: "#fff", color: subtitleColor, padding: "4px 10px", borderRadius: 50, 
+              fontSize: 12, fontWeight: 800, letterSpacing: "0.05em", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" 
+            }}>
+              SCORE: {score}
+            </div>
+          )}
           <span
             className="inline-flex items-center"
             style={{
@@ -103,6 +114,7 @@ export function SenseBanner({
             />
             LIVE
           </span>
+          </div>
         </div>
       </div>
     </>

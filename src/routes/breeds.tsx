@@ -7,6 +7,7 @@ import {
   AlertTriangle, MessageCircle, Dog, Sparkles, Heart, Wind, Sun, Minus, Zap, Crown, Shuffle, RefreshCw, PawPrint,
   type LucideProps,
 } from "lucide-react";
+import { getBreedInsights, type BreedInsights } from "@/lib/gemini";
 import { useT, useLanguage, T } from "@/context/LanguageContext";
 import { POSTS } from "@/lib/mock";
 import {
@@ -61,7 +62,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "活動量が多いため、不安を隠す行動に注意したベースライン調整が必要。",
     diagnosticNoteEn: "High activity telemetry requires careful baseline adjustment for anxiety hiding behaviors.",
-    image: "https://loremflickr.com/800/600/dog,shibainu",
     bannerBg: "linear-gradient(135deg, var(--acc-strong), var(--acc-strong))",
     rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "柴", kanjiSize: 64, kanjiColor: "rgba(255,255,255,0.25)",
@@ -77,7 +77,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-16 years",
     diagnosticNoteJp: "短頭種のため、呼吸と体温を注意深く監視。",
     diagnosticNoteEn: "Brachycephalic breed — monitor breathing and temperature closely.",
-    image: "https://loremflickr.com/800/600/dog,patellarluxation",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))",
     rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "獅", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.28)",
@@ -93,7 +92,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "寒冷地仕様のため、サーマルセンサーで体温変動を監視し熱中症を防ぐ。",
     diagnosticNoteEn: "Thrives in cold environments; thermal sensors monitor internal temperature variations against dangerous overheating.",
-    image: "https://loremflickr.com/800/600/dog,brachycephalicsyndrome",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))",
     rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "雪", kanjiSize: 64, kanjiColor: "rgba(255,255,255,0.28)",
@@ -109,7 +107,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "外耳炎の傾向あり。耳道の湿度・温度トレンドの定期確認を推奨。",
     diagnosticNoteEn: "Ear-canal humidity & temperature trends should be reviewed regularly to flag early otitis.",
-    image: "https://loremflickr.com/800/600/dog,heatstroke",
     bannerBg: "linear-gradient(135deg, var(--accent-fuji), var(--acc-deep))",
     rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "プー", kanjiSize: 44, kanjiColor: "rgba(255,255,255,0.22)",
@@ -125,7 +122,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "14-16 years",
     diagnosticNoteJp: "気管虚脱の兆候を検知するため、咳と呼吸音の継続モニタリングが重要。",
     diagnosticNoteEn: "Continuous cough & airway-sound monitoring helps detect early tracheal collapse signs.",
-    image: "https://loremflickr.com/800/600/dog,earinfections",
     bannerBg: "linear-gradient(135deg, var(--acc-strong), var(--acc-soft))",
     rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "チ", kanjiSize: 64, kanjiColor: "rgba(255,255,255,0.28)",
@@ -141,7 +137,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-16 years",
     diagnosticNoteJp: "気管虚脱に注意。吠え声パターンと呼吸変動を継続追跡。",
     diagnosticNoteEn: "Watch for tracheal weakness; continuously track bark patterns and breathing variability.",
-    image: "https://loremflickr.com/800/600/dog,trachealcollapse",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--acc-soft))",
     rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "ポメ", kanjiSize: 42, kanjiColor: "color-mix(in oklab, var(--acc-deep) 22.0%, transparent)",
@@ -157,7 +152,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-12 years",
     diagnosticNoteJp: "早期関節症の素因あり。GaitSense AIが微細な歩行劣化を追跡。",
     diagnosticNoteEn: "High predisposition to early-stage arthritis; GaitSense AI tracks subtle mobility degradation.",
-    image: "https://loremflickr.com/800/600/dog,trachealcollapse",
     bannerBg: "linear-gradient(135deg, var(--acc-strong), var(--acc-deep))",
     rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "金", kanjiSize: 64, kanjiColor: "rgba(255,255,255,0.25)",
@@ -173,7 +167,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-16 years",
     diagnosticNoteJp: "椎間板ヘルニアの高リスク。背中の姿勢と歩行を継続監視。",
     diagnosticNoteEn: "High IVDD risk; spine posture and gait require continuous monitoring.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-strong), var(--acc-deep))",
     rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "ダックス", kanjiSize: 32, kanjiColor: "rgba(255,255,255,0.22)",
@@ -189,7 +182,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-12 years",
     diagnosticNoteJp: "突発的な咳パターンと呼吸異常を検知。",
     diagnosticNoteEn: "Prone to sudden respiratory cough patterns and breathing anomalies.",
-    image: "https://loremflickr.com/800/600/dog,ivddbackissues",
     bannerBg: "linear-gradient(135deg, var(--acc-strong), var(--acc2-deep))",
     rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "フレブル", kanjiSize: 32, kanjiColor: "rgba(255,255,255,0.22)",
@@ -205,7 +197,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-16 years",
     diagnosticNoteJp: "歯周病に注意。咀嚼パターンと口腔音の追跡を推奨。",
     diagnosticNoteEn: "Dental disease prone; chew patterns and oral sounds should be tracked.",
-    image: "https://loremflickr.com/800/600/dog,brachycephalicsyndrome",
     bannerBg: "linear-gradient(135deg, var(--acc-strong), var(--acc-soft))",
     rankBg: "var(--acc-deep)", sizeBg: "#F8F0FF", sizeText: "var(--acc-deep)",
     kanji: "ヨーキー", kanjiSize: 32, kanjiColor: "rgba(255,255,255,0.24)",
@@ -221,7 +212,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-18 years",
     diagnosticNoteJp: "個体差が大きいため、Pawsitive Diagnostics AIが独自のベースラインを学習。",
     diagnosticNoteEn: "High individual variance; Pawsitive Diagnostics AI learns a personalized baseline per dog.",
-    image: "https://loremflickr.com/800/600/dog,dentalissues",
     bannerBg: "linear-gradient(135deg, var(--acc-strong), var(--accent-fuji), var(--acc-strong), var(--acc-strong))",
     rankBg: "var(--accent-matcha)", sizeBg: "linear-gradient(135deg,var(--acc-pale),var(--acc-pale),var(--acc-pale),var(--acc-pale))", sizeText: "var(--acc-deep)",
     kanji: "∞", kanjiSize: 56, kanjiColor: "rgba(255,255,255,0.4)",
@@ -238,7 +228,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-13 years",
     diagnosticNoteJp: "自己免疫疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for autoimmune conditions supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,variesbymix",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "秋", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -253,7 +242,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,autoimmuneconditions",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "北", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -268,7 +256,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "アレルギーの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for allergies supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "甲", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -283,7 +270,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "11-13 years",
     diagnosticNoteJp: "皮膚疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for skin issues supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,allergies",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "紀", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -298,7 +284,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "目疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for eye issues supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,skinissues",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "四", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -313,7 +298,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "膝蓋骨脱臼の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for patellar luxation supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,eyeissues",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "白", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -328,7 +312,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-14 years",
     diagnosticNoteJp: "短頭種症候群の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for brachycephalic syndrome supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,patellarluxation",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "狆", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -343,7 +326,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-12 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,brachycephalicsyndrome",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "土", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -358,7 +340,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "歯周病の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for dental issues supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "白", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -373,7 +354,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-15 years",
     diagnosticNoteJp: "膝蓋骨脱臼の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for patellar luxation supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,dentalissues",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "蝶", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -388,7 +368,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "14-15 years",
     diagnosticNoteJp: "骨折リスクの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for bone fragility supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,patellarluxation",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "伊", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -403,7 +382,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-16 years",
     diagnosticNoteJp: "膝蓋骨脱臼の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for patellar luxation supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,bonefragility",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "独", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -418,7 +396,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-15 years",
     diagnosticNoteJp: "膝蓋骨脱臼の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for patellar luxation supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,patellarluxation",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "狐", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -433,7 +410,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "進行性網膜萎縮の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for progressive retinal atrophy supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,patellarluxation",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "蔵", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -448,7 +424,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "短頭種症候群の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for brachycephalic syndrome supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,progressiveretinalatrophy",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "京", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -463,7 +438,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "14-16 years",
     diagnosticNoteJp: "白内障の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for cataracts supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,brachycephalicsyndrome",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "哈", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -478,7 +452,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "アレルギーの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for allergies supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,cataracts",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "雪", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -493,7 +466,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "膝蓋骨脱臼の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for patellar luxation supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,allergies",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "猿", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -508,7 +480,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "短頭種症候群の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for brachycephalic syndrome supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,patellarluxation",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "白", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -523,7 +494,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-16 years",
     diagnosticNoteJp: "椎間板ヘルニアの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for ivdd supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,brachycephalicsyndrome",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "独", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -538,7 +508,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "肥満の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for obesity supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,ivdd",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "英", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -553,7 +522,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "8-10 years",
     diagnosticNoteJp: "短頭種症候群の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for brachycephalic syndrome supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,obesity",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "英", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -568,7 +536,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-13 years",
     diagnosticNoteJp: "椎間板ヘルニアの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for ivdd supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,brachycephalicsyndrome",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "柯", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -583,7 +550,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "コリーアイの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for collie eye supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,ivdd",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "羊", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -598,7 +564,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,collieeye",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "羊", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -613,7 +578,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "てんかんの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for epilepsy supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "豪", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -628,7 +592,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "外耳炎の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for ear infections supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,epilepsy",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "泉", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -643,7 +606,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "外耳炎の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for ear infections supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,earinfections",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "耳", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -658,7 +620,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-12 years",
     diagnosticNoteJp: "椎間板ヘルニアの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for ivdd supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,earinfections",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "仏", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -673,7 +634,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "アレルギーの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for allergies supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,ivdd",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "威", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -688,7 +648,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-15 years",
     diagnosticNoteJp: "門脈シャントの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for liver shunt supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,allergies",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "岩", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -703,7 +662,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "11-13 years",
     diagnosticNoteJp: "膀胱がんの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for bladder cancer supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,livershunt",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "蘇", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -718,7 +676,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-15 years",
     diagnosticNoteJp: "皮膚疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for skin issues supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,bladdercancer",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "西", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -733,7 +690,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "膵炎の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for pancreatitis supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,skinissues",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "独", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -748,7 +704,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "14-16 years",
     diagnosticNoteJp: "目疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for eye issues supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,pancreatitis",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "仏", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -763,7 +718,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-14 years",
     diagnosticNoteJp: "ファンコニ症候群の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for fanconi syndrome supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,eyeissues",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "コ", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -778,7 +732,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "椎間板ヘルニアの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for ivdd supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,fanconisyndrome",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "空", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -793,7 +746,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-12 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,ivdd",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "拉", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -808,7 +760,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "9-13 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "独", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -823,7 +774,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-14 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "氷", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -838,7 +788,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "白", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -853,7 +802,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "7-10 years",
     diagnosticNoteJp: "がんリスクの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for cancer risk supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "山", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -868,7 +816,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-12 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,cancerrisk",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "峰", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -883,7 +830,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "胃捻転の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for bloat supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "愛", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -898,7 +844,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-13 years",
     diagnosticNoteJp: "心筋症の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for cardiomyopathy supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,bloat",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "独", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -913,7 +858,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "9-10 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,cardiomyopathy",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "独", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -928,7 +872,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-12 years",
     diagnosticNoteJp: "心臓疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for heart disease supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "拳", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -943,7 +886,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "11-14 years",
     diagnosticNoteJp: "胃捻転の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for bloat supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,heartdisease",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "銀", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -958,7 +900,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "11-13 years",
     diagnosticNoteJp: "難聴の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for deafness supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,bloat",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "斑", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -973,7 +914,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "白内障の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for cataracts supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,deafness",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "阿", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -988,7 +928,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "7-10 years",
     diagnosticNoteJp: "胃捻転の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for bloat supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,cataracts",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "巨", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -1003,7 +942,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "8-10 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,bloat",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "聖", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -1018,7 +956,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "9-10 years",
     diagnosticNoteJp: "心臓疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for heart disease supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "海", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -1033,7 +970,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "6-8 years",
     diagnosticNoteJp: "心臓疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for heart disease supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,heartdisease",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "狼", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -1048,7 +984,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "8-11 years",
     diagnosticNoteJp: "心臓疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for heart disease supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,heartdisease",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "鹿", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -1063,7 +998,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-16 years",
     diagnosticNoteJp: "椎間板ヘルニアの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for ivdd supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,heartdisease",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "兎", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -1078,7 +1012,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "外耳炎の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for ear infections supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,ivdd",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "仏", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -1093,7 +1026,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "胃捻転の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for bloat supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,earinfections",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "仏", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -1108,7 +1040,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "僧帽弁疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for mitral valve disease supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,bloat",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "王", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -1123,7 +1054,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "進行性網膜萎縮の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for progressive retinal atrophy supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,mitralvalvedisease",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "米", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -1138,7 +1068,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-15 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,progressiveretinalatrophy",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "米", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -1153,7 +1082,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "豪", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -1168,7 +1096,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-15 years",
     diagnosticNoteJp: "白内障の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for cataracts supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "米", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -1183,7 +1110,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "14-16 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,cataracts",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "白", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -1198,7 +1124,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-12 years",
     diagnosticNoteJp: "胃捻転の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for bloat supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "血", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -1213,7 +1138,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-13 years",
     diagnosticNoteJp: "骨肉腫の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for osteosarcoma supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,bloat",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "速", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -1228,7 +1152,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "心臓疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for heart disease supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,osteosarcoma",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "風", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -1243,7 +1166,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "てんかんの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for epilepsy supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,heartdisease",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "匈", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -1258,7 +1180,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,epilepsy",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "仏", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -1273,7 +1194,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "8-10 years",
     diagnosticNoteJp: "がんリスクの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for cancer risk supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "英", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -1288,7 +1208,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "10-13 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,cancerrisk",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "湾", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -1303,7 +1222,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "自己免疫疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for autoimmune conditions supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "加", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -1318,7 +1236,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-18 years",
     diagnosticNoteJp: "皮膚疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for skin issues supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,autoimmuneconditions",
     bannerBg: "linear-gradient(135deg, var(--acc-pale), var(--accent-sakura))", rankBg: "var(--acc-deep)", sizeBg: "var(--bg-card-sakura)", sizeText: "var(--acc-deep)",
     kanji: "華", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Crown, iconColor: "rgba(255,255,255,0.65)",
@@ -1333,7 +1250,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-18 years",
     diagnosticNoteJp: "皮膚疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for skin issues supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,skinissues",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "墨", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -1348,7 +1264,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "てんかんの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for epilepsy supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,skinissues",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "沙", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -1363,7 +1278,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,epilepsy",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "西", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -1378,7 +1292,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "匈", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -1393,7 +1306,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "14-17 years",
     diagnosticNoteJp: "てんかんの傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for epilepsy supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "伊", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -1408,7 +1320,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-15 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,epilepsy",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "仏", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -1423,7 +1334,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "消化器疾患の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for digestive issues supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "北", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -1438,7 +1348,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,digestiveissues",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "波", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -1453,7 +1362,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "斯", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sun, iconColor: "rgba(255,255,255,0.65)",
@@ -1468,7 +1376,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-15 years",
     diagnosticNoteJp: "進行性網膜萎縮の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for progressive retinal atrophy supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "米", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -1483,7 +1390,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "13-15 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,progressiveretinalatrophy",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "芬", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -1498,7 +1404,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "進行性網膜萎縮の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for progressive retinal atrophy supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "北", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Wind, iconColor: "rgba(255,255,255,0.65)",
@@ -1513,7 +1418,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-14 years",
     diagnosticNoteJp: "股関節形成不全の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for hip dysplasia supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,progressiveretinalatrophy",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "氷", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -1528,7 +1432,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "8-9 years",
     diagnosticNoteJp: "骨肉腫の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for osteosarcoma supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,hipdysplasia",
     bannerBg: "linear-gradient(135deg, var(--acc2-soft), var(--acc2-strong))", rankBg: "var(--acc2-deep)", sizeBg: "var(--acc2-pale)", sizeText: "var(--acc2-deep)",
     kanji: "獅", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Zap, iconColor: "rgba(255,255,255,0.65)",
@@ -1543,7 +1446,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-15 years",
     diagnosticNoteJp: "短頭種症候群の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for brachycephalic syndrome supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,osteosarcoma",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "巴", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -1558,7 +1460,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "11-13 years",
     diagnosticNoteJp: "短頭種症候群の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for brachycephalic syndrome supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,brachycephalicsyndrome",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "波", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Heart, iconColor: "rgba(255,255,255,0.65)",
@@ -1573,7 +1474,6 @@ const BREEDS: Breed[] = [
     lifeSpan: "12-16 years",
     diagnosticNoteJp: "進行性網膜萎縮の傾向を継続モニタリング。早期検知で予後を改善。",
     diagnosticNoteEn: "Continuous monitoring for progressive retinal atrophy supports early detection and better outcomes.",
-    image: "https://loremflickr.com/800/600/dog,brachycephalicsyndrome",
     bannerBg: "linear-gradient(135deg, var(--acc-soft), var(--acc-strong))", rankBg: "var(--acc-deep)", sizeBg: "var(--acc-pale)", sizeText: "var(--acc-deep)",
     kanji: "牛", kanjiSize: 60, kanjiColor: "rgba(255,255,255,0.25)",
     Icon: Sparkles, iconColor: "rgba(255,255,255,0.65)",
@@ -2004,8 +1904,8 @@ function BreedCard({ breed, onOpen, language, t, matches }: { breed: Breed; onOp
       }}
     >
       {/* HERO BANNER */}
-      <div style={{ position: "relative", height: 132, overflow: "hidden" }}>
-        <BreedImage breed={breed} srcOverride={null} loading={false}>
+      <div style={{ position: "relative", height: 180, overflow: "hidden" }}>
+        <BreedImage breed={breed} srcOverride={imgUrl} loading={imgLoading}>
           <Icon
             size={22}
             color="rgba(255,255,255,0.95)"
@@ -2124,15 +2024,29 @@ function BreedDetail({ breed, onClose }: { breed: Breed; onClose: () => void }) 
   const { url: heroUrl, loading: heroLoading } = useBreedImage(breed.en);
   const [strip, setStrip] = useState<string[]>([]);
   const [stripLoading, setStripLoading] = useState(true);
+  const [insights, setInsights] = useState<BreedInsights | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(true);
+
 
   useEffect(() => {
-    const id = requestAnimationFrame(() => setAnimated(true));
-    return () => cancelAnimationFrame(id);
+    const id = setTimeout(() => setAnimated(true), 50);
+    return () => clearTimeout(id);
   }, []);
 
   useEffect(() => {
     let cancelled = false;
     setStripLoading(true);
+    setInsightsLoading(true);
+    getBreedInsights(breed.en, language).then(data => {
+      if (!cancelled) {
+        setInsights(data);
+        setInsightsLoading(false);
+      }
+    }).catch(e => {
+      console.error(e);
+      if (!cancelled) setInsightsLoading(false);
+    });
+
     fetchMultipleBreedImages(breed.en, 3).then((imgs) => {
       if (!cancelled) {
         setStrip(imgs);
@@ -2268,7 +2182,7 @@ function BreedDetail({ breed, onClose }: { breed: Breed; onClose: () => void }) 
                 <div style={{ height: 8, background: "var(--border-subtle)", borderRadius: 4, overflow: "hidden" }}>
                   <div style={{
                     height: "100%", width: animated ? `${b.v}%` : "0%",
-                    background: `linear-gradient(90deg, ${b.color}, ${b.color}CC)`,
+                    background: `linear-gradient(90deg, ${b.color}, color-mix(in srgb, ${b.color} 80%, transparent))`, 
                     borderRadius: 4, transition: "width 800ms cubic-bezier(0.4,0,0.2,1)",
                   }} />
                 </div>
@@ -2300,6 +2214,54 @@ function BreedDetail({ breed, onClose }: { breed: Breed; onClose: () => void }) 
               );
             })}
           </div>
+        </div>
+
+        {/* AI INSIGHTS */}
+        <div style={{ padding: "20px", margin: "12px 16px 24px", background: "#FFFFFF", borderRadius: 20, boxShadow: "0 4px 16px rgba(0,0,0,0.05)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <Sparkles size={18} color="var(--accent-fuji)" />
+            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>
+              {t("AI 詳細情報", "AI Breed Insights")}
+            </div>
+          </div>
+          
+          {insightsLoading ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ height: 14, background: "var(--bg-card-sakura)", borderRadius: 4, width: "100%", animation: "breedSkeletonShimmer 1.4s infinite" }} />
+              <div style={{ height: 14, background: "var(--bg-card-sakura)", borderRadius: 4, width: "90%", animation: "breedSkeletonShimmer 1.4s infinite" }} />
+              <div style={{ height: 14, background: "var(--bg-card-sakura)", borderRadius: 4, width: "95%", animation: "breedSkeletonShimmer 1.4s infinite" }} />
+              <div style={{ height: 14, background: "var(--bg-card-sakura)", borderRadius: 4, width: "60%", animation: "breedSkeletonShimmer 1.4s infinite" }} />
+              <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 8, textAlign: "center", fontStyle: "italic" }}>
+                {t("AIが情報を生成中...", "Generating insights...")}
+              </div>
+            </div>
+          ) : insights ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent-fuji)", marginBottom: 4 }}>{t("性格と行動", "Behavior & Temperament")}</div>
+                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{insights.behavior}</div>
+              </div>
+              <div style={{ height: 1, background: "var(--border-subtle)" }} />
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent-yuzu)", marginBottom: 4 }}>{t("食事と栄養", "Food & Diet")}</div>
+                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{insights.food}</div>
+              </div>
+              <div style={{ height: 1, background: "var(--border-subtle)" }} />
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent-matcha)", marginBottom: 4 }}>{t("ケアと運動", "Care & Exercise")}</div>
+                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{insights.care}</div>
+              </div>
+              <div style={{ height: 1, background: "var(--border-subtle)" }} />
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent-sakura)", marginBottom: 4 }}>{t("歴史と起源", "History & Origins")}</div>
+                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{insights.history}</div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+              {t("情報の取得に失敗しました。", "Failed to load insights.")}
+            </div>
+          )}
         </div>
 
         {/* COMMUNITY */}

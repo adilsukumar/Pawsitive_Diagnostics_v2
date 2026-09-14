@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -9,7 +9,7 @@ import {
   Eye,
   ShieldCheck,
   Check,
-  MessageCircle,
+  MessageCircle, Send,
   RotateCcw,
   Syringe,
   ChevronLeft,
@@ -433,6 +433,42 @@ export function PetMatchDiscovery({ startId, onClose }: { startId: string; onClo
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [draft, setDraft] = useState<Filters>(DEFAULT_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [activeChat, setActiveChat] = useState<MatchProfile | null>(null);
+  const [chatInput, setChatInput] = useState("");
+  const chatScrollRef = React.useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<Record<string, {sender: "me"|"them", text: string, time: string}[]>>({
+    "pm-1": [
+      { sender: "them", text: "Hi! Saw you matched with Bruno. Our dogs have similar energy levels!", time: "10:30 AM" }
+    ],
+    "pm-4": [
+      { sender: "them", text: "Hey! Zara would love a playdate.", time: "Yesterday" }
+    ]
+  });
+
+  React.useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [messages, activeChat]);
+
+  const sendMessage = () => {
+    if (!chatInput.trim() || !activeChat) return;
+    const newMsg = { sender: "me" as const, text: chatInput.trim(), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    setMessages(prev => ({
+      ...prev,
+      [activeChat.id]: [...(prev[activeChat.id] || []), newMsg]
+    }));
+    setChatInput("");
+    
+    // Auto reply simulation
+    setTimeout(() => {
+      const reply = { sender: "them" as const, text: "Haha that's awesome! Let's meet at the dog park this weekend.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+      setMessages(prev => ({
+        ...prev,
+        [activeChat.id]: [...(prev[activeChat.id] || []), reply]
+      }));
+    }, 1500);
+  };
   const [ownerFor, setOwnerFor] = useState<MatchProfile | null>(null);
   const [matchFor, setMatchFor] = useState<MatchProfile | null>(null);
   const [interestedIds, setInterestedIds] = useState<Record<string, boolean>>({});
@@ -531,8 +567,8 @@ export function PetMatchDiscovery({ startId, onClose }: { startId: string; onClo
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 onDragEnd={(_, info) => {
-                  if (info.offset.x > 90) interested();
-                  else if (info.offset.x < -90) pass();
+                  if (info.offset.x > 90) pass();
+                  else if (info.offset.x < -90) interested();
                 }}
                 className="flex flex-col"
                 style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 10px 30px rgba(0,0,0,0.10)", overflow: "hidden", minHeight: 0, maxHeight: "100%" }}
@@ -805,7 +841,7 @@ export function PetMatchDiscovery({ startId, onClose }: { startId: string; onClo
                 </div>
                 <button
                   onClick={() => {
-                    toast.success(`Conversation started with ${matchFor.owner}`, { description: "Keep it pet-focused and be kind." });
+                    setActiveChat(matchFor);
                     setMatchFor(null);
                   }}
                   className="flex items-center justify-center gap-2"
@@ -928,6 +964,81 @@ export function PetMatchDiscovery({ startId, onClose }: { startId: string; onClo
                 </button>
               </motion.div>
             </div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Chat UI ── */}
+        <AnimatePresence>
+          {activeChat && (
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-0 z-[150] flex flex-col"
+              style={{ background: "var(--bg-page)" }}
+            >
+              {/* Header */}
+              <div className="flex items-center gap-3 px-4 py-3" style={{ background: "#FFFFFF", borderBottom: "1px solid var(--border-subtle)" }}>
+                <button onClick={() => setActiveChat(null)} style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: "var(--bg-card-sakura)", color: "var(--accent-sakura)" }}>
+                  <ChevronLeft size={20} />
+                </button>
+                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--border-subtle)", overflow: "hidden" }}>
+                    <img src={activeChat.photoUrl || `https://images.dog.ceo/breeds/${activeChat.slug.split('/')[0]}/placeholder.jpg`} alt={activeChat.pet} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{activeChat.owner}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>{activeChat.pet}'s Owner</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Messages Area */}
+              <div ref={chatScrollRef} style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ alignSelf: "center", fontSize: 11, color: "var(--text-secondary)", background: "rgba(0,0,0,0.05)", padding: "4px 12px", borderRadius: 12, marginBottom: 8 }}>
+                  You matched with {activeChat.pet} on {new Date().toLocaleDateString()}
+                </div>
+                {(messages[activeChat.id] || []).map((msg, i) => {
+                  const isMe = msg.sender === "me";
+                  return (
+                    <div key={i} style={{ alignSelf: isMe ? "flex-end" : "flex-start", maxWidth: "80%" }}>
+                      <div style={{
+                        background: isMe ? "linear-gradient(135deg, var(--accent-sakura), var(--accent-sakura-dark))" : "#FFFFFF",
+                        color: isMe ? "#FFFFFF" : "var(--text-primary)",
+                        padding: "10px 14px",
+                        borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                        fontSize: 14,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                        border: isMe ? "none" : "1px solid var(--border-card)"
+                      }}>
+                        {msg.text}
+                      </div>
+                      <div style={{ fontSize: 10, color: "var(--text-secondary)", marginTop: 4, textAlign: isMe ? "right" : "left" }}>
+                        {msg.time}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Input Area */}
+              <div style={{ padding: "12px 16px", background: "#FFFFFF", borderTop: "1px solid var(--border-subtle)" }}>
+                <div className="flex items-center gap-2" style={{ background: "var(--bg-page)", padding: "4px 4px 4px 16px", borderRadius: 24, border: "1px solid var(--border-card)" }}>
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                    placeholder={`Message ${activeChat.owner}...`}
+                    style={{ flex: 1, background: "transparent", outline: "none", fontSize: 14, color: "var(--text-primary)" }}
+                  />
+                  <button onClick={sendMessage} style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--accent-sakura)", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", opacity: chatInput.trim() ? 1 : 0.5, transition: "opacity 0.2s" }}>
+                    <Send size={16} style={{ marginLeft: -2 }} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>

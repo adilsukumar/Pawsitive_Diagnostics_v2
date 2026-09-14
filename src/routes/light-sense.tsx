@@ -1,6 +1,6 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { SensorPage } from "@/components/SensorPage";
-import { LiveSensorBody } from "@/components/LiveSensorBody";
+import { calculateScores } from "@/lib/score";
 import { useState, useEffect } from "react";
 import { useLightSenseApi, type Pixel } from "@/lib/useLightSenseApi";
 import { Settings, Lightbulb, ActivitySquare } from "lucide-react";
@@ -8,6 +8,9 @@ import { Settings, Lightbulb, ActivitySquare } from "lucide-react";
 export const Route = createFileRoute("/light-sense")({ component: LightSensePage });
 
 function LightSensePage() {
+  const { live } = useCollar();
+  const scores = calculateScores(78, live.motion?.value, live.skin?.value, live.bark?.value, live.temp?.value);
+  
   const api = useLightSenseApi();
   const [pixels, setPixels] = useState<Pixel[]>([
     { r: 255, g: 0, b: 120 },
@@ -45,8 +48,10 @@ function LightSensePage() {
     api.updateCustomLights(pixels, val);
   };
 
+    
+    
   return (
-    <SensorPage
+    <SensorPage score={scores.lightScore}
       titleEn="LightSense AI"
       subtitleEn="Hardware Control"
       descriptorEn="Ambient & RGB Control"
@@ -156,13 +161,7 @@ function LightSensePage() {
         </button>
       </div>
 
-      <LiveSensorBody
-        sensor="light"
-        labelEn="Ambient Light"
-        unitLabel="lux"
-        decimals={0}
-        note="Reported directly by the collar's light sensor."
-      />
+      
     </SensorPage>
   );
 }

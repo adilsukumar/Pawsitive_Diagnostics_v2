@@ -51,6 +51,36 @@ function Report() {
   const { language } = useLanguage();
   const { pet } = usePet();
   const [tab, setTab] = useState<(typeof TABS)[number]>("1w");
+  const [showQR, setShowQR] = useState(false);
+  const pdfRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportPdf = async () => {
+    if (!pdfRef.current) return;
+    try {
+      setIsExporting(true);
+      toast.info(language === "en" ? "Generating PDF..." : "PDF出力中...");
+      
+      const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+      
+      // A4 size in mm is 210 x 297
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Pawsitive_Report_${pet.name || "Pet"}_${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast.success(language === "en" ? "Export successful!" : "PDF出力完了");
+    } catch (err) {
+      console.error(err);
+      toast.error(language === "en" ? "Failed to generate PDF" : "PDF生成に失敗しました");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
 
   const [bump, setBump] = useState(0);
   useEffect(() => {
@@ -315,12 +345,51 @@ function Report() {
           <SectionDivider jp="出力" en="Reports & Sync" />
           
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 40 }}>
-            <QRCard onClick={() => toast.success(language === "en" ? "QR Generated" : "QR生成完了")} />
-            <PDFCard onClick={() => toast.success(language === "en" ? "Exporting PDF..." : "PDF出力中...")} />
+            <QRCard onClick={() => setShowQR(true)} />
+            <PDFCard onClick={exportPdf} />
           </div>
+        </div>
+
+        {/* QR Modal */}
+        {showQR && (
+          <div style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+            background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)",
+            zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 24
+          }} onClick={() => setShowQR(false)}>
+            <div style={{
+              background: "#FFF", borderRadius: 24, padding: 32, width: "100%", maxWidth: 320,
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 16,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
+            }} onClick={e => e.stopPropagation()}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: C.cafe }}>{language === "en" ? "Vet Access QR" : "獣医アクセスQR"}</div>
+              <div style={{ fontSize: 13, color: C.moss, textAlign: "center", marginBottom: 8 }}>
+                {language === "en" ? "Show this code to your vet to grant temporary access to your dog's health data." : "獣医にこのコードを提示して、健康データへのアクセスを許可します。"}
+              </div>
+              <div style={{ background: "#F8FAFC", padding: 16, borderRadius: 16, border: `2px dashed ${C.moss}` }}>
+                <QRCodeSVG value={`pawsitive-vet-auth:${pet.id || "12345"}`} size={180} />
+              </div>
+              <button
+                onClick={() => setShowQR(false)}
+                style={{
+                  width: "100%", height: 44, marginTop: 16,
+                  background: C.kombu, color: C.bone, fontWeight: 700, fontSize: 15, borderRadius: 12, border: "none"
+                }}
+              >
+                {language === "en" ? "Close" : "閉じる"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Hidden PDF Template */}
+        <div style={{ position: "absolute", left: -9999, top: -9999, overflow: "hidden" }}>
+          <PdfTemplate ref={pdfRef} pet={pet} timeline={tab} />
         </div>
       </div>
     </AppShell>
+
   );
 }
 

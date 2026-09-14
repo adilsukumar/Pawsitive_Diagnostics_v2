@@ -1,6 +1,7 @@
 ﻿import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Bell, ArrowLeft, AlertTriangle, Heart, Syringe } from "lucide-react";
 import { toast } from "sonner";
+
 import pawLogo from "@/assets/paw-logo.png";
 import { motion } from "framer-motion";
 import { useState, useEffect, type ReactNode } from "react";
@@ -313,7 +314,7 @@ export default function AppShell({
         >
           {vetBlocked ? null : children}
         </main>
-        <SideDrawer isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+                <SideDrawer isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
         {!hideBottomNav && <BottomNav />}
       </div>
     </div>

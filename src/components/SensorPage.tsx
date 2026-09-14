@@ -47,6 +47,7 @@ export function SensorPage({
   bannerGradient,
   bannerSubtitleColor,
   requiresCollar = true,
+  score,
   children,
 }: {
   titleEn: string;
@@ -55,6 +56,7 @@ export function SensorPage({
   bannerGradient?: string;
   bannerSubtitleColor?: string;
   requiresCollar?: boolean;
+  score?: number;
   children: ReactNode;
 }) {
   const { connected, receiving, connect, state, error, transport } = useCollar();
@@ -89,6 +91,7 @@ export function SensorPage({
           descriptorEn={descriptorEn ?? ""}
           bgGradient={bannerGradient ?? "linear-gradient(145deg,var(--acc-pale) 0%,var(--bg-page) 100%)"}
           subtitleColor={bannerSubtitleColor ?? "var(--acc-soft)"}
+          score={score}
         />
 
         {/* Content — real collar data only; no dummy numbers */}

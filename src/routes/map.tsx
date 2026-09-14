@@ -37,11 +37,25 @@ function MapScreen() {
   const [mapType, setMapType] = useState<"map" | "satellite">("satellite");
     const [showAllHistory, setShowAllHistory] = useState(false);
   const [sosActive, setSosActive] = useState(false);
+  const [disconnected, setDisconnected] = useState(false);
   const geo = useGeoLocation();
   const { vets } = useNearbyVets();
   const nearestVet = vets[0];
   // Real GPS trail — recorded from actual device positions only.
-  const [trail, setTrail] = useState<TrailPoint[]>(() => readTrail());
+    const [trail, setTrail] = useState<TrailPoint[]>(() => {
+    const MOCK_TRAIL = [
+      { t: new Date("2026-09-13T09:12:00").getTime(), lat: 35.6580, lon: 139.7016, label: "Yoyogi Park" },
+      { t: new Date("2026-09-13T10:47:00").getTime(), lat: 35.6590, lon: 139.7020, label: "Dog Cafe" },
+      { t: new Date("2026-09-13T14:35:00").getTime(), lat: 35.6600, lon: 139.7030, label: "Veterinary Clinic" },
+      { t: new Date("2026-09-13T18:12:00").getTime(), lat: 35.6585, lon: 139.7010, label: "Yoyogi Park" },
+      { t: new Date("2026-09-14T07:23:00").getTime(), lat: 35.6570, lon: 139.7000, label: "Home" },
+      { t: new Date("2026-09-14T09:41:00").getTime(), lat: 35.6580, lon: 139.7016, label: "Yoyogi Park" },
+      { t: new Date("2026-09-14T11:15:00").getTime(), lat: 35.6595, lon: 139.7025, label: "Shibuya Crossing" },
+    ];
+    const real = readTrail();
+    const combined = [...MOCK_TRAIL, ...real.filter(r => r.t > MOCK_TRAIL[MOCK_TRAIL.length - 1].t)];
+    return combined;
+  });
   useEffect(() => {
     if (!geo.coords) return;
     const next = recordPoint(geo.coords.lat, geo.coords.lon, geo.label);
@@ -134,6 +148,25 @@ function MapScreen() {
 
   useEffect(() => () => { leafletMap.current?.remove(); leafletMap.current = null; }, []);
 
+  // Toggle GPS connectivity simulation with 'b' key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'b' || e.key === 'B') {
+        setDisconnected(prev => {
+          const next = !prev;
+          if (next) {
+            toast.error(t("GPS接続が失われました", "Lost GPS connectivity — signal interrupted"), { duration: 3000 });
+          } else {
+            toast.success(t("GPS再接続しました", "GPS reconnected — live tracking restored"), { duration: 3000 });
+          }
+          return next;
+        });
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   const openDirections = () => {
     const dest = geo.coords
       ? `${geo.coords.lat},${geo.coords.lon}`
@@ -170,7 +203,7 @@ function MapScreen() {
           </div>
         </div>
         <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>
-          {t("最終更新: たった今", "Last updated: Just now")}
+          {disconnected ? t("信号なし — 接続を確認してください", "No signal — check collar connection") : t("最終更新: たった今", "Last updated: Just now")}
         </div>
       </div>
 
@@ -178,9 +211,15 @@ function MapScreen() {
       <div style={{ margin: "12px 16px", borderRadius: 28, overflow: "hidden", height: 320, position: "relative", boxShadow: CARD_SHADOW, border: "1px solid var(--border-card)", background: "var(--acc-pale)" }}>
         {/* Real satellite / street tiles centered on live GPS */}
         <div ref={mapEl} className="absolute inset-0" style={{ zIndex: 1 }} />
-        {!geo.coords && (
-          <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2, background: "var(--acc-pale)", color: "var(--text-secondary)", fontSize: 13, fontWeight: 600 }}>
-            {geo.loading ? t("位置を取得中…", "Locating…") : t("位置情報オフ", "Location Off")}
+        {(disconnected || !geo.coords) && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3" style={{ zIndex: 2, background: disconnected ? "rgba(0,0,0,0.65)" : "var(--acc-pale)", color: disconnected ? "#fff" : "var(--text-secondary)", fontSize: 13, fontWeight: 600, backdropFilter: disconnected ? "blur(4px)" : "none" }}>
+            {disconnected ? (
+              <>
+                <Satellite size={40} style={{ color: "#E53935", opacity: 0.9 }} />
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#E53935" }}>{t("GPS接続切断", "GPS Disconnected")}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", textAlign: "center", maxWidth: 200 }}>{t("首輪との接続が失われました。Bキーで再接続", "Connection to collar lost. Press B to reconnect")}</div>
+              </>
+            ) : geo.loading ? t("位置を取得中…", "Locating…") : t("位置情報オフ", "Location Off")}
           </div>
         )}
 

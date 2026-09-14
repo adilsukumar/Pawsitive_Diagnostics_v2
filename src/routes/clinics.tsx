@@ -3,7 +3,7 @@ import AppShell from "@/components/AppShell";
 
 import { useNearbyVets } from "@/lib/useNearbyVets";
 
-type ClinicItem = { jp: string; en: string; rating: number; km: number; open: boolean; em: boolean; lat?: number; lon?: number; address?: string; real?: boolean };
+type ClinicItem = { jp: string; en: string; rating: number; km: number; open: boolean; em: boolean; lat?: number; lon?: number; address?: string; phone?: string; real?: boolean };
 import { useGeoLocation } from "@/lib/useGeoLocation";
 import {
   Search,
@@ -88,11 +88,11 @@ function Clinics() {
   const [query, setQuery] = useState("");
   const [saved, setSaved] = useState<Record<number, boolean>>({});
   const [minStars, setMinStars] = useState(4);
-  const [distance, setDistance] = useState(5);
+  const [distance, setDistance] = useState(0);
   const [openOnly, setOpenOnly] = useState(true);
   const [emOnly, setEmOnly] = useState(false);
   const [specSel, setSpecSel] = useState<Record<string, boolean>>({});
-  const [applied, setApplied] = useState({ minStars: 0, distance: 50, openOnly: false, emOnly: false });
+  const [applied, setApplied] = useState({ minStars: 0, distance: Infinity, openOnly: false, emOnly: false });
   const [visible, setVisible] = useState(5);
   const [videoBooking, setVideoBooking] = useState(false);
   const [dirFor, setDirFor] = useState<ClinicItem | null>(null);
@@ -127,7 +127,7 @@ function Clinics() {
     }, 1800);
   }
 
-  const emergencyClinic = source.find((c) => c.em && c.open) ?? source[0];
+  const emergencyClinic = source.find((c) => c.em) ?? source[0];
 
   return (
     <AppShell noPadding>
@@ -205,7 +205,7 @@ function Clinics() {
       </div>
 
       {/* ── Emergency card (compact) ───────────────────────── */}
-      <div
+      {emergencyClinic && <div
         className="flex items-center justify-between"
         style={{
           margin: `16px ${MX}px 0`,
@@ -222,14 +222,14 @@ function Clinics() {
             {t("In Emergency", "In Emergency")}
           </div>
           <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.25, marginTop: 2 }}>
-            {t("Nearest 24H Hospital", "Nearest 24H Hospital")}
+            {emergencyClinic.em ? t("Nearest 24H Hospital", "Nearest 24H Hospital") : t("Nearest Clinic", "Nearest Clinic")}
           </div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.9)", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {emergencyClinic.en} · {emergencyClinic.km}km {emergencyClinic.rating > 0 ? ` · ★ ${emergencyClinic.rating}` : ""}
           </div>
         </div>
-        <a
-          href="tel:+919820001234"
+        {emergencyClinic.phone && <a
+          href={`tel:${emergencyClinic.phone}`}
           className="flex items-center gap-1.5 shrink-0 active:scale-95 transition-transform"
           style={{
             background: "var(--bg-card)", color: "var(--accent-red)",
@@ -239,8 +239,8 @@ function Clinics() {
         >
           <Phone size={12} />
           {t("Call", "Call")}
-        </a>
-      </div>
+        </a>}
+      </div>}
 
       {/* ── Video consultation (compact action card) ───────── */}
       <button
@@ -299,7 +299,7 @@ function Clinics() {
       {!vetsLoading && vets.length > 0 && (
         <div className="flex items-center justify-between gap-2" style={{ margin: `0 ${MX}px 10px` }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: "var(--accent-matcha)" }}>
-            {vets.length} real vet clinics near {vetsGeo.short || "you"}
+            {vets.length} vet clinics near {vetsGeo.coords ? vetsGeo.short || "you" : "Bandra, Mumbai (default location)"}
           </span>
           <button onClick={refreshVets} style={{ fontSize: 11, fontWeight: 700, color: "var(--acc-strong)" }}>Refresh</button>
         </div>
@@ -307,9 +307,7 @@ function Clinics() {
       {!vetsLoading && vets.length === 0 && (
         <div className="flex items-center justify-between gap-2" style={{ margin: `0 ${MX}px 10px` }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)" }}>
-            {vetsGeo.denied
-              ? "Turn on location access to see clinics around you"
-              : vetsError ?? "Getting your location…"}
+            {vetsError ?? (vetsGeo.loading ? "Getting your location…" : "Finding clinics…")}
           </span>
           <button onClick={refreshVets} style={{ fontSize: 11, fontWeight: 700, color: "var(--acc-strong)" }}>Retry</button>
         </div>
@@ -442,8 +440,8 @@ function Clinics() {
                 >
                   <Navigation size={12} /> {t("Directions", "Directions")}
                 </button>
-                <a
-                  href="tel:+919820001234"
+                {c.phone && <a
+                  href={`tel:${c.phone}`}
                   onClick={(e) => e.stopPropagation()}
                   aria-label="Call clinic"
                   className="flex items-center justify-center shrink-0 active:scale-95 transition-transform"
@@ -454,15 +452,15 @@ function Clinics() {
                   }}
                 >
                   <Phone size={14} />
-                </a>
+                </a>}
               </div>
             </div>
           );
         })}
 
-        {filtered.length === 0 && (
+        {!vetsLoading && !vetsGeo.loading && filtered.length === 0 && (
           <div style={{ padding: "24px 16px", textAlign: "center", fontSize: 13, color: "var(--text-secondary)" }}>
-            No clinics match these filters.
+            {vets.length ? "No clinics match these filters. Try clearing them." : "No clinics found. Try again or check your connection."}
           </div>
         )}
         {visible < filtered.length && (
@@ -502,7 +500,7 @@ function Clinics() {
                 {t("Filter", "Filter")}
               </div>
               <button
-                onClick={() => { setMinStars(0); setDistance(5); setOpenOnly(false); setEmOnly(false); setSpecSel({}); }}
+                onClick={() => { setMinStars(0); setDistance(0); setOpenOnly(false); setEmOnly(false); setSpecSel({}); setApplied({ minStars: 0, distance: Infinity, openOnly: false, emOnly: false }); }}
                 style={{ fontSize: 13, fontWeight: 700, color: "var(--accent-sakura)" }}
               >
                 {t("Reset", "Reset")}
@@ -513,17 +511,17 @@ function Clinics() {
             <div style={{ marginTop: 20 }}>
               <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{t("Distance", "Distance")}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--accent-sakura)", background: "var(--accent-sakura-soft)", padding: "2px 10px", borderRadius: 20 }}>{distance}km</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--accent-sakura)", background: "var(--accent-sakura-soft)", padding: "2px 10px", borderRadius: 20 }}>{distance === 0 ? "Any distance" : `${distance}km`}</span>
               </div>
               <input
-                type="range" min={1} max={10} step={1}
+                type="range" min={0} max={100} step={5}
                 value={distance}
                 onChange={(e) => setDistance(parseInt(e.target.value))}
                 className="w-full"
                 style={{ accentColor: "var(--accent-sakura)" }}
               />
               <div className="flex justify-between" style={{ fontSize: 10, color: "var(--text-placeholder)", marginTop: 2 }}>
-                <span>1km</span><span>3km</span><span>5km</span><span>10km</span>
+                <span>Any</span><span>25km</span><span>50km</span><span>100km</span>
               </div>
             </div>
 
@@ -618,7 +616,7 @@ function Clinics() {
 
             <button
               onClick={() => {
-                setApplied({ minStars, distance, openOnly, emOnly });
+                setApplied({ minStars, distance: distance || Infinity, openOnly, emOnly });
                 setVisible(5);
                 setFilter(false);
                 toast.success(t("Filters applied", "Filters applied"));
@@ -632,7 +630,7 @@ function Clinics() {
                 boxShadow: "0 6px 16px color-mix(in srgb, var(--accent-sakura) calc(0.35 * 100%), transparent)",
               }}
             >
-              {t("Apply Filters", "Apply Filters")} · {CLINICS.filter((c) => (c.rating >= minStars || c.rating === 0) && c.km <= distance && (!openOnly || c.open) && (!emOnly || c.em)).length}{t(" results", " results")}
+              {t("Apply Filters", "Apply Filters")} · {source.filter((c) => (c.rating >= minStars || c.rating === 0) && (distance === 0 || c.km <= distance) && (!openOnly || c.open) && (!emOnly || c.em)).length}{t(" results", " results")}
             </button>
             <button onClick={() => setFilter(false)} className="w-full flex items-center justify-center gap-1" style={{ fontSize: 12, color: "var(--text-secondary)", padding: "8px 0" }}>
               <X size={12} /> {t("Cancel", "Cancel")}
